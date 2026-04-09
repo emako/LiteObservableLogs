@@ -23,6 +23,12 @@ public static class LoggingBuilderExtensions
     /// <summary>
     /// Adds the provider using a prebuilt options instance.
     /// </summary>
+    /// <remarks>
+    /// Also sets the default minimum level on <see cref="Microsoft.Extensions.Logging.LoggerFilterOptions"/>
+    /// to match <see cref="ObservableLoggerOptions.MinLevel"/> as a Microsoft <see cref="Microsoft.Extensions.Logging.LogLevel"/>,
+    /// so calls like <c>ILogger.LogDebug</c> are not dropped by Generic Host defaults (often <see cref="Microsoft.Extensions.Logging.LogLevel.Information"/> or higher)
+    /// before they reach this provider.
+    /// </remarks>
     public static ILoggingBuilder AddLiteObservableLogs(
         this ILoggingBuilder builder,
         ObservableLoggerOptions options)
@@ -38,6 +44,7 @@ public static class LoggingBuilderExtensions
         }
 
         builder.AddProvider(new ObservableLoggerProvider(options));
+        builder.SetMinimumLevel(options.MinLevel.ToMicrosoft());
         return builder;
     }
 }

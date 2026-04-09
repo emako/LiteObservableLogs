@@ -9,7 +9,7 @@ namespace LiteObservableLogs.Demo.WPF;
 
 public partial class App : Application
 {
-    // The.NET Generic Host provides dependency injection, configuration, logging, and other services.
+    // The .NET Generic Host provides dependency injection, configuration, logging, and other services.
     // https://docs.microsoft.com/dotnet/core/extensions/generic-host
     // https://docs.microsoft.com/dotnet/core/extensions/dependency-injection
     // https://docs.microsoft.com/dotnet/core/extensions/configuration
@@ -31,7 +31,7 @@ public partial class App : Application
                     retainedFileTimeLimit: TimeSpan.FromDays(21))
                 .WriteTo.Console(outputTemplate:
                     "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-                .WriteTo.Event() // you can subscribe an event log from Log.Received to it in the UI to get real-time log updates
+                .WriteTo.Event()
                 .MinimumLevel.Debug()
                 .CreateLogger();
 
@@ -41,7 +41,7 @@ public partial class App : Application
         .Build();
 
     /// <summary>
-    /// Generic host for DI（MainWindow 等处解析 ViewModel / ILogger）。
+    /// Generic host for dependency injection; resolves <see cref="MainViewModel"/> and <see cref="ILogger{T}"/> from <see cref="IServiceProvider"/>.
     /// </summary>
     public static IHost Host => _host;
 }
