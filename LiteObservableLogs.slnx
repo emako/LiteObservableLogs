@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="src/LiteObservableLogs.Demo.WPF/LiteObservableLogs.Demo.WPF.csproj" Id="3cb7136a-718d-4f60-9fcc-70ef2d5c961d" />
   <Project Path="src/LiteObservableLogs.Tests/LiteObservableLogs.Tests.csproj" />
   <Project Path="src/LiteObservableLogs/LiteObservableLogs.csproj" />
 </Solution>

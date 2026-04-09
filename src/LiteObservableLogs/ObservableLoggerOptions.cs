@@ -58,7 +58,7 @@ public sealed class ObservableLoggerOptions
     /// </summary>
     public ObservableLoggerOptions Clone()
     {
-        return new ObservableLoggerOptions
+        return new ObservableLoggerOptions()
         {
             LogFolder = LogFolder,
             FileName = FileName,
