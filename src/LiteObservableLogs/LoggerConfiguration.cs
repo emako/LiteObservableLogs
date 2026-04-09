@@ -10,7 +10,18 @@ namespace LiteObservableLogs;
 public sealed class LoggerConfiguration
 {
     private readonly ObservableLoggerOptions _options = new();
+    private readonly WriteToConfiguration _writeTo;
+    private readonly MinimumLevelConfiguration _minimumLevel;
     private bool _loggerCreated;
+
+    /// <summary>
+    /// Creates a new configuration with default values.
+    /// </summary>
+    public LoggerConfiguration()
+    {
+        _writeTo = new WriteToConfiguration(this);
+        _minimumLevel = new MinimumLevelConfiguration(this);
+    }
 
     /// <summary>
     /// Creates a new configuration instance with default option values.
@@ -19,6 +30,16 @@ public sealed class LoggerConfiguration
     {
         return new LoggerConfiguration();
     }
+
+    /// <summary>
+    /// Provides Serilog-style sink configuration entry.
+    /// </summary>
+    public WriteToConfiguration WriteTo => _writeTo;
+
+    /// <summary>
+    /// Provides Serilog-style minimum level configuration entry.
+    /// </summary>
+    public MinimumLevelConfiguration MinimumLevel => _minimumLevel;
 
     /// <summary>
     /// Sets how log records are dispatched to storage.
@@ -125,7 +146,7 @@ public sealed class LoggerConfiguration
 
         ObservableLoggerProvider provider = new(_options);
         ILogger logger = provider.CreateLogger(categoryName);
-        return new ObservableLoggerFacade(logger, provider, true);
+        return new ObservableLoggerFacade(logger, provider, true, _options);
     }
 
     /// <summary>
@@ -163,6 +184,147 @@ public sealed class LoggerConfiguration
         {
             // The builder is intentionally one-shot to avoid accidental shared mutable state.
             throw new InvalidOperationException("Duplicated logger created.");
+        }
+    }
+
+    internal LoggerConfiguration SetWriteToFileCompatibility(
+        string path,
+        RollingInterval rollingInterval,
+        int? retainedFileCountLimit,
+        TimeSpan? retainedFileTimeLimit)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            throw new ArgumentException("Path cannot be null or whitespace.", nameof(path));
+        }
+
+        string fullPath = System.IO.Path.GetFullPath(path);
+        string? folder = System.IO.Path.GetDirectoryName(fullPath);
+        string fileName = System.IO.Path.GetFileName(fullPath);
+
+        _options.LogFolder = string.IsNullOrWhiteSpace(folder)
+            ? AppContext.BaseDirectory
+            : folder!;
+        _options.FileNameTemplate = fileName;
+        _options.FileName = null;
+        _options.RetainedFileCountLimit = retainedFileCountLimit;
+        _options.RetainedFileTimeLimit = retainedFileTimeLimit;
+
+        if (rollingInterval != RollingInterval.Infinite && !_options.FileNameTemplate.Contains("{Timestamp:", StringComparison.Ordinal))
+        {
+            // Keep compatibility predictable when callers choose rolling interval but omit timestamp placeholder.
+            _options.FileNameTemplate = AppendRollingSuffix(_options.FileNameTemplate, rollingInterval);
+        }
+
+        return this;
+    }
+
+    internal LoggerConfiguration EnableConsoleCompatibility()
+    {
+        _options.WriteToConsole = true;
+        return this;
+    }
+
+    internal LoggerConfiguration EnableEventCompatibility()
+    {
+        _options.PublishToEvent = true;
+        return this;
+    }
+
+    private static string AppendRollingSuffix(string fileName, RollingInterval rollingInterval)
+    {
+        string extension = System.IO.Path.GetExtension(fileName);
+        string withoutExtension = extension.Length == 0
+            ? fileName
+            : fileName.Substring(0, fileName.Length - extension.Length);
+        string format = rollingInterval switch
+        {
+            RollingInterval.Year => "yyyy",
+            RollingInterval.Month => "yyyyMM",
+            RollingInterval.Day => "yyyyMMdd",
+            RollingInterval.Hour => "yyyyMMddHH",
+            RollingInterval.Minute => "yyyyMMddHHmm",
+            _ => "yyyyMMdd",
+        };
+
+        return $"{withoutExtension}_{{Timestamp:{format}}}{extension}";
+    }
+
+    /// <summary>
+    /// Serilog-style sink configuration compatibility wrapper.
+    /// </summary>
+    public sealed class WriteToConfiguration
+    {
+        private readonly LoggerConfiguration _owner;
+
+        internal WriteToConfiguration(LoggerConfiguration owner)
+        {
+            _owner = owner;
+        }
+
+        public LoggerConfiguration File(
+            string path,
+            string? outputTemplate = null,
+            RollingInterval rollingInterval = RollingInterval.Infinite,
+            int? retainedFileCountLimit = null,
+            TimeSpan? retainedFileTimeLimit = null)
+        {
+            _ = outputTemplate; // Template is accepted for API compatibility.
+            return _owner.SetWriteToFileCompatibility(path, rollingInterval, retainedFileCountLimit, retainedFileTimeLimit);
+        }
+
+        public LoggerConfiguration Console(string? outputTemplate = null)
+        {
+            _ = outputTemplate; // Template is accepted for API compatibility.
+            return _owner.EnableConsoleCompatibility();
+        }
+
+        public LoggerConfiguration Event()
+        {
+            return _owner.EnableEventCompatibility();
+        }
+    }
+
+    /// <summary>
+    /// Serilog-style minimum level configuration compatibility wrapper.
+    /// </summary>
+    public sealed class MinimumLevelConfiguration
+    {
+        private readonly LoggerConfiguration _owner;
+
+        internal MinimumLevelConfiguration(LoggerConfiguration owner)
+        {
+            _owner = owner;
+        }
+
+        public LoggerConfiguration Verbose()
+        {
+            return _owner.UseLevel(LogLevel.Trace);
+        }
+
+        public LoggerConfiguration Debug()
+        {
+            return _owner.UseLevel(LogLevel.Debug);
+        }
+
+        public LoggerConfiguration Information()
+        {
+            return _owner.UseLevel(LogLevel.Information);
+        }
+
+        public LoggerConfiguration Warning()
+        {
+            return _owner.UseLevel(LogLevel.Warning);
+        }
+
+        public LoggerConfiguration Error()
+        {
+            return _owner.UseLevel(LogLevel.Error);
+        }
+
+        public LoggerConfiguration Fatal()
+        {
+            return _owner.UseLevel(LogLevel.Critical);
         }
     }
 }

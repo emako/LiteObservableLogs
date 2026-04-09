@@ -14,6 +14,12 @@ public static class Log
     public static ObservableLoggerFacade Empty { get; } = ObservableLoggerFacade.Empty;
 
     private static ObservableLoggerFacade _logger = Empty;
+    private static ObservableLoggerOptions _currentOptions = new();
+
+    /// <summary>
+    /// Raised when event publishing is enabled and a log entry is written.
+    /// </summary>
+    public static event EventHandler<ObservableLogEvent>? Received;
 
     /// <summary>
     /// Gets or sets the current global logger facade.
@@ -24,8 +30,18 @@ public static class Log
     public static ObservableLoggerFacade Logger
     {
         get => _logger;
-        set => _logger = value ?? Empty;
+        set
+        {
+            ObservableLoggerFacade next = value ?? Empty;
+            _logger = next;
+            _currentOptions = next.OptionsSnapshot ?? new ObservableLoggerOptions();
+        }
     }
+
+    /// <summary>
+    /// Gets the latest known options from the current global logger.
+    /// </summary>
+    internal static ObservableLoggerOptions CurrentOptions => _currentOptions.Clone();
 
     /// <summary>
     /// Flushes and disposes the current global logger, then resets it to <see cref="Empty"/>.
@@ -33,6 +49,7 @@ public static class Log
     public static void CloseAndFlush()
     {
         ObservableLoggerFacade logger = Interlocked.Exchange(ref _logger, Empty);
+        _currentOptions = new ObservableLoggerOptions();
         logger.Flush();
         logger.Dispose();
     }
@@ -96,8 +113,13 @@ public static class Log
     /// <summary>
     /// Writes an exception as an error log entry with an optional custom message.
     /// </summary>
-    public static void Exception(Exception exception, string? message = null)
+    public static void Exception(System.Exception exception, string? message = null)
     {
         _logger.Exception(exception, message);
+    }
+
+    internal static void Publish(ObservableLogEvent entry)
+    {
+        Received?.Invoke(null, entry);
     }
 }

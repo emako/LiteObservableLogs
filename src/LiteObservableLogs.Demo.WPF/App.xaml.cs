@@ -1,7 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using LiteObservableLogs.Demo.WPF.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Configuration;
-using System.Data;
+using Microsoft.Extensions.Logging;
 using System.IO;
 using System.Windows;
 
@@ -14,7 +14,7 @@ public partial class App : Application
     // https://docs.microsoft.com/dotnet/core/extensions/dependency-injection
     // https://docs.microsoft.com/dotnet/core/extensions/configuration
     // https://docs.microsoft.com/dotnet/core/extensions/logging
-    private static readonly IHost _host = Host.CreateDefaultBuilder()
+    private static readonly IHost _host = Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()
         .ConfigureLogging(builder => { })
         .ConfigureServices((context, services) =>
         {
@@ -36,5 +36,12 @@ public partial class App : Application
                 .CreateLogger();
 
             services.AddLogging(c => c.AddSerilog());
-        });
+            services.AddSingleton<MainViewModel>();
+        })
+        .Build();
+
+    /// <summary>
+    /// Generic host for DI（MainWindow 等处解析 ViewModel / ILogger）。
+    /// </summary>
+    public static IHost Host => _host;
 }

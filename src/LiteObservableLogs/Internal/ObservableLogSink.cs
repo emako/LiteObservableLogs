@@ -64,7 +64,10 @@ internal sealed class ObservableLogSink : IDisposable
             scopes ?? Array.Empty<string>(),
             resolvedCaller);
 
-        _dispatcher.Enqueue(entry, _formatter.Format(entry));
+        string rendered = _formatter.Format(entry);
+        _dispatcher.Enqueue(entry, rendered);
+        WriteConsole(rendered);
+        PublishEvent(entry, rendered);
     }
 
     /// <summary>
@@ -105,5 +108,31 @@ internal sealed class ObservableLogSink : IDisposable
         return options.LoggerType == LoggerType.Sync
             ? new SyncLogDispatcher(writer)
             : new AsyncLogDispatcher(writer);
+    }
+
+    private void WriteConsole(string rendered)
+    {
+        if (!_options.WriteToConsole)
+        {
+            return;
+        }
+
+        Console.WriteLine(rendered);
+    }
+
+    private void PublishEvent(LogEntry entry, string rendered)
+    {
+        if (!_options.PublishToEvent)
+        {
+            return;
+        }
+
+        Log.Publish(new ObservableLogEvent(
+            entry.Timestamp,
+            entry.Level.ToLiteObservable(),
+            entry.Category,
+            entry.Message,
+            entry.Exception,
+            rendered));
     }
 }

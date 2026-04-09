@@ -14,13 +14,19 @@ public sealed class ObservableLoggerFacade : IDisposable
     private readonly ILogger _logger;
     private readonly ObservableLoggerProvider? _provider;
     private readonly bool _ownsProvider;
+    private readonly ObservableLoggerOptions? _optionsSnapshot;
     private bool _disposed;
 
-    internal ObservableLoggerFacade(ILogger logger, ObservableLoggerProvider? provider, bool ownsProvider)
+    internal ObservableLoggerFacade(
+        ILogger logger,
+        ObservableLoggerProvider? provider,
+        bool ownsProvider,
+        ObservableLoggerOptions? optionsSnapshot = null)
     {
         _logger = logger;
         _provider = provider;
         _ownsProvider = ownsProvider;
+        _optionsSnapshot = optionsSnapshot?.Clone();
     }
 
     /// <summary>
@@ -32,6 +38,8 @@ public sealed class ObservableLoggerFacade : IDisposable
     /// Gets the underlying Microsoft logger instance.
     /// </summary>
     public ILogger InnerLogger => _logger;
+
+    internal ObservableLoggerOptions? OptionsSnapshot => _optionsSnapshot?.Clone();
 
     /// <summary>
     /// Emits no output. Kept for level API parity.

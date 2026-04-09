@@ -1,7 +1,9 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace LiteObservableLogs.Internal;
 
@@ -12,6 +14,7 @@ internal sealed class ObservableFileWriter : IDisposable
 {
     private readonly ObservableLoggerOptions _options;
     private readonly object _syncRoot = new();
+    private readonly Regex? _retentionRegex;
 
     private StreamWriter? _writer;
     private string? _currentFilePath;
@@ -19,6 +22,7 @@ internal sealed class ObservableFileWriter : IDisposable
     public ObservableFileWriter(ObservableLoggerOptions options)
     {
         _options = options;
+        _retentionRegex = BuildRetentionRegex(_options.FileNameTemplate);
     }
 
     /// <summary>
@@ -79,12 +83,102 @@ internal sealed class ObservableFileWriter : IDisposable
         };
 
         _currentFilePath = filePath;
+        CleanupOldFiles();
     }
 
     private string ResolveFileName(DateTimeOffset timestamp)
     {
+        if (!string.IsNullOrWhiteSpace(_options.FileNameTemplate))
+        {
+            return ApplyTemplate(_options.FileNameTemplate!, timestamp);
+        }
+
         return string.IsNullOrWhiteSpace(_options.FileName)
             ? timestamp.ToString("yyyyMMdd'.log'", CultureInfo.InvariantCulture)
             : _options.FileName!;
+    }
+
+    private static string ApplyTemplate(string template, DateTimeOffset timestamp)
+    {
+        return Regex.Replace(
+            template,
+            @"\{Timestamp:([^}]+)\}",
+            match => timestamp.ToString(match.Groups[1].Value, CultureInfo.InvariantCulture),
+            RegexOptions.CultureInvariant);
+    }
+
+    private void CleanupOldFiles()
+    {
+        if (_options.RetainedFileCountLimit == null && _options.RetainedFileTimeLimit == null)
+        {
+            return;
+        }
+
+        if (!Directory.Exists(_options.LogFolder))
+        {
+            return;
+        }
+
+        FileInfo[] files = new DirectoryInfo(_options.LogFolder)
+            .GetFiles("*", SearchOption.TopDirectoryOnly)
+            .Where(static file => !file.Attributes.HasFlag(FileAttributes.Directory))
+            .Where(IsRetentionCandidate)
+            .OrderByDescending(file => file.LastWriteTimeUtc)
+            .ToArray();
+
+        DateTime utcNow = DateTime.UtcNow;
+        int keepCount = _options.RetainedFileCountLimit ?? int.MaxValue;
+        TimeSpan? keepAge = _options.RetainedFileTimeLimit;
+
+        for (int i = 0; i < files.Length; i++)
+        {
+            FileInfo file = files[i];
+            bool exceedCount = i >= keepCount;
+            bool exceedAge = keepAge.HasValue && (utcNow - file.LastWriteTimeUtc) > keepAge.Value;
+            if (!exceedCount && !exceedAge)
+            {
+                continue;
+            }
+
+            try
+            {
+                file.Delete();
+            }
+            catch
+            {
+                // Ignore retention cleanup failures to avoid affecting primary log writes.
+            }
+        }
+    }
+
+    private bool IsRetentionCandidate(FileInfo file)
+    {
+        if (string.IsNullOrWhiteSpace(_options.FileNameTemplate))
+        {
+            return string.IsNullOrWhiteSpace(_options.FileName)
+                ? file.Extension.Equals(".log", StringComparison.OrdinalIgnoreCase)
+                : string.Equals(file.Name, _options.FileName, StringComparison.OrdinalIgnoreCase);
+        }
+
+        return _retentionRegex?.IsMatch(file.Name) == true;
+    }
+
+    private static Regex? BuildRetentionRegex(string? template)
+    {
+        if (string.IsNullOrWhiteSpace(template))
+        {
+            return null;
+        }
+
+        string pattern = Regex.Escape(template)
+            .Replace(@"\{Timestamp\:", "{Timestamp:")
+            .Replace(@"\}", "}");
+        pattern = Regex.Replace(
+            pattern,
+            @"\{Timestamp:[^}]+\}",
+            "[0-9]+",
+            RegexOptions.CultureInvariant);
+
+        return new Regex($"^{pattern}$", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
     }
 }
