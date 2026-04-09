@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using MelLogLevel = Microsoft.Extensions.Logging.LogLevel;
 using Microsoft.Extensions.Logging;
 
 namespace LiteObservableLogs.Internal;
@@ -25,14 +24,14 @@ internal sealed class ObservableLogSink : IDisposable
     /// <summary>
     /// Determines whether an incoming level should be accepted.
     /// </summary>
-    public bool IsEnabled(MelLogLevel level)
+    public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel level)
     {
         if (_disposed || _options.LoggerType == LoggerType.Silent)
         {
             return false;
         }
 
-        return level != MelLogLevel.None && level >= _options.MinLevel.ToMicrosoft();
+        return level != Microsoft.Extensions.Logging.LogLevel.None && level >= (Microsoft.Extensions.Logging.LogLevel)_options.MinLevel;
     }
 
     /// <summary>
@@ -40,7 +39,7 @@ internal sealed class ObservableLogSink : IDisposable
     /// </summary>
     public void Write(
         string category,
-        MelLogLevel level,
+        Microsoft.Extensions.Logging.LogLevel level,
         EventId eventId,
         string message,
         Exception? exception,
@@ -61,7 +60,7 @@ internal sealed class ObservableLogSink : IDisposable
             eventId,
             message,
             exception,
-            scopes ?? Array.Empty<string>(),
+            scopes ?? [],
             resolvedCaller);
 
         string rendered = _formatter.Format(entry);
@@ -129,7 +128,7 @@ internal sealed class ObservableLogSink : IDisposable
 
         Log.Publish(new ObservableLogEvent(
             entry.Timestamp,
-            entry.Level.ToLiteObservable(),
+            (LogLevel)entry.Level,
             entry.Category,
             entry.Message,
             entry.Exception,

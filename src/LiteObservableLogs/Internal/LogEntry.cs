@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using MelLogLevel = Microsoft.Extensions.Logging.LogLevel;
 using Microsoft.Extensions.Logging;
 
 namespace LiteObservableLogs.Internal;
@@ -9,7 +8,7 @@ internal sealed class LogEntry
 {
     public LogEntry(
         DateTimeOffset timestamp,
-        MelLogLevel level,
+        Microsoft.Extensions.Logging.LogLevel level,
         string category,
         EventId eventId,
         string message,
@@ -18,7 +17,7 @@ internal sealed class LogEntry
         CallerInfo? caller)
     {
         Timestamp = timestamp;
-        Level = level;
+        Level = (LogLevel)level;
         Category = category;
         EventId = eventId;
         Message = message;
@@ -29,7 +28,7 @@ internal sealed class LogEntry
 
     public DateTimeOffset Timestamp { get; }
 
-    public MelLogLevel Level { get; }
+    public LogLevel Level { get; }
 
     public string Category { get; }
 

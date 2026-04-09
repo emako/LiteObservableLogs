@@ -44,7 +44,7 @@ public static class LoggingBuilderExtensions
         }
 
         builder.AddProvider(new ObservableLoggerProvider(options));
-        builder.SetMinimumLevel(options.MinLevel.ToMicrosoft());
+        builder.SetMinimumLevel((Microsoft.Extensions.Logging.LogLevel)options.MinLevel);
         return builder;
     }
 }

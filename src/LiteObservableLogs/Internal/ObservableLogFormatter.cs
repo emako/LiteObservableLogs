@@ -1,5 +1,4 @@
 using System.Text;
-using MelLogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace LiteObservableLogs.Internal;
 
@@ -21,7 +20,7 @@ internal sealed class ObservableLogFormatter
     public string Format(LogEntry entry)
     {
         StringBuilder sb = new();
-        sb.Append(RenderLevel(entry.Level))
+        sb.Append(RenderLevel((Microsoft.Extensions.Logging.LogLevel)entry.Level))
           .Append('|')
           .Append(entry.Timestamp.ToString("yyyy-MM-dd|HH:mm:ss.fff"));
 
@@ -62,16 +61,16 @@ internal sealed class ObservableLogFormatter
     /// <summary>
     /// Maps Microsoft log levels to compact textual tokens.
     /// </summary>
-    private static string RenderLevel(MelLogLevel level)
+    private static string RenderLevel(Microsoft.Extensions.Logging.LogLevel level)
     {
         return level switch
         {
-            MelLogLevel.Trace => "TRACE",
-            MelLogLevel.Debug => "DEBUG",
-            MelLogLevel.Information => "INFO",
-            MelLogLevel.Warning => "WARN",
-            MelLogLevel.Error => "ERROR",
-            MelLogLevel.Critical => "FATAL",
+            Microsoft.Extensions.Logging.LogLevel.Trace => "TRACE",
+            Microsoft.Extensions.Logging.LogLevel.Debug => "DEBUG",
+            Microsoft.Extensions.Logging.LogLevel.Information => "INFO",
+            Microsoft.Extensions.Logging.LogLevel.Warning => "WARN",
+            Microsoft.Extensions.Logging.LogLevel.Error => "ERROR",
+            Microsoft.Extensions.Logging.LogLevel.Critical => "FATAL",
             _ => "NONE",
         };
     }

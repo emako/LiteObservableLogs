@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using LiteObservableLogs.Internal;
-using MelLogLevel = Microsoft.Extensions.Logging.LogLevel;
 using Microsoft.Extensions.Logging;
 
 namespace LiteObservableLogs.Providers;
@@ -46,7 +45,7 @@ public sealed class ObservableLogger : ILogger
     /// <summary>
     /// Checks whether a level is currently enabled for this sink.
     /// </summary>
-    public bool IsEnabled(MelLogLevel logLevel)
+    public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel logLevel)
     {
         return _sink.IsEnabled(logLevel);
     }
@@ -55,7 +54,7 @@ public sealed class ObservableLogger : ILogger
     /// Formats incoming state and forwards a structured entry to the sink.
     /// </summary>
     public void Log<TState>(
-        MelLogLevel logLevel,
+        Microsoft.Extensions.Logging.LogLevel logLevel,
         EventId eventId,
         TState state,
         Exception? exception,
@@ -70,7 +69,7 @@ public sealed class ObservableLogger : ILogger
             ? state?.ToString() ?? string.Empty
             : formatter(state, exception);
 
-        List<string> scopes = new();
+        List<string> scopes = [];
         if (_includeScopes)
         {
             // Snapshot scopes now to keep asynchronous dispatch independent of ambient context.

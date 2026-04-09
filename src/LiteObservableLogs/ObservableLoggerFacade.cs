@@ -107,7 +107,7 @@ public sealed class ObservableLoggerFacade : IDisposable
             ? exception.Message
             : message!;
 
-        _logger.Log(LogLevel.Error.ToMicrosoft(), default, finalMessage, exception, static (state, _) => state);
+        _logger.Log((Microsoft.Extensions.Logging.LogLevel)LogLevel.Error, default, finalMessage, exception, static (state, _) => state);
     }
 
     /// <summary>
@@ -141,7 +141,7 @@ public sealed class ObservableLoggerFacade : IDisposable
         ThrowIfDisposed();
         // Keep the facade API intentionally simple: object values are joined by spaces.
         string message = string.Join(" ", values.Select(static item => item?.ToString() ?? string.Empty));
-        _logger.Log(level.ToMicrosoft(), default, message, null, static (state, _) => state);
+        _logger.Log((Microsoft.Extensions.Logging.LogLevel)level, default, message, null, static (state, _) => state);
     }
 
     private void ThrowIfDisposed()
