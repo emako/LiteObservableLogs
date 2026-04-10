@@ -237,6 +237,43 @@ public sealed class LiteObservableLogsTests
     }
 
     /// <summary>
+    /// Verifies async mode dispatches console and event outputs on the background queue.
+    /// </summary>
+    [Fact]
+    public void AsyncConsoleAndEventOutputsAreDispatchedByQueue()
+    {
+        TextWriter originalOut = Console.Out;
+        using StringWriter console = new();
+        Console.SetOut(console);
+
+        ObservableLogEvent? received = null;
+        EventHandler<ObservableLogEvent> handler = (_, entry) => received = entry;
+        Log.Received += handler;
+
+        try
+        {
+            using ObservableLoggerFacade logger = new LoggerConfiguration()
+                .WriteTo.Console("ASYNC_CONSOLE|{Message}")
+                .WriteTo.Event("ASYNC_EVENT|{Message}")
+                .LoggerType.Async()
+                .MinimumLevel.Information()
+                .CreateLogger();
+
+            logger.Information("hello-async");
+            logger.Flush();
+        }
+        finally
+        {
+            Log.Received -= handler;
+            Console.SetOut(originalOut);
+        }
+
+        Assert.Contains("ASYNC_CONSOLE|hello-async", console.ToString());
+        Assert.NotNull(received);
+        Assert.Equal("ASYNC_EVENT|hello-async", received!.RenderedText);
+    }
+
+    /// <summary>
     /// Verifies minute rolling creates new files and increments {Count} with numeric formatting.
     /// </summary>
     [Fact]

@@ -19,7 +19,7 @@ internal sealed class ObservableLogSink : IDisposable
     {
         _options = options.Clone();
         _formatter = new ObservableLogFormatter(_options);
-        _dispatcher = CreateDispatcher(_options);
+        _dispatcher = CreateDispatcher();
     }
 
     /// <summary>
@@ -66,8 +66,11 @@ internal sealed class ObservableLogSink : IDisposable
 
         string fileRendered = _formatter.FormatFile(entry);
         _dispatcher.Enqueue(entry, fileRendered);
-        WriteConsole(entry);
-        PublishEvent(entry);
+        if (_options.LoggerType != LoggerType.Async)
+        {
+            WriteConsole(entry);
+            PublishEvent(entry);
+        }
     }
 
     /// <summary>
@@ -97,17 +100,23 @@ internal sealed class ObservableLogSink : IDisposable
         _dispatcher.Dispose();
     }
 
-    private static IObservableLogDispatcher CreateDispatcher(ObservableLoggerOptions options)
+    private IObservableLogDispatcher CreateDispatcher()
     {
-        if (options.LoggerType == LoggerType.Silent)
+        if (_options.LoggerType == LoggerType.Silent)
         {
             return new NoneLogDispatcher();
         }
 
-        ObservableFileWriter writer = new(options);
-        return options.LoggerType == LoggerType.Sync
+        ObservableFileWriter writer = new(_options);
+        return _options.LoggerType == LoggerType.Sync
             ? new SyncLogDispatcher(writer)
-            : new AsyncLogDispatcher(writer);
+            : new AsyncLogDispatcher(writer, DispatchSecondaryTargets);
+    }
+
+    private void DispatchSecondaryTargets(LogEntry entry)
+    {
+        WriteConsole(entry);
+        PublishEvent(entry);
     }
 
     private void WriteConsole(LogEntry entry)

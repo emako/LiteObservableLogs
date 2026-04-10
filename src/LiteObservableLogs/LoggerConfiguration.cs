@@ -51,7 +51,7 @@ public sealed class LoggerConfiguration
     /// <summary>
     /// Sets how log records are dispatched to storage.
     /// </summary>
-    public LoggerConfiguration UseType(global::LiteObservableLogs.LoggerType type = global::LiteObservableLogs.LoggerType.Async)
+    public LoggerConfiguration UseType(LoggerType type = LiteObservableLogs.LoggerType.Async)
     {
         _options.LoggerType = type;
         return this;

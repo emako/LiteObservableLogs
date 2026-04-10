@@ -34,7 +34,7 @@ public partial class App : Application
                     outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message}{NewLine}{Exception}",
                     target: ConsoleTarget.Debug)
                 .WriteTo.Event(outputTemplate: "[{Timestamp:HH:mm:ss.fff}] [{Level:u3}] {SourceContext}{NewLine}{Message}{NewLine}{Exception}{NewLine}")
-                .LoggerType.Sync()
+                .LoggerType.Async()
                 .MinimumLevel.Debug()
                 .CreateLogger();
 
