@@ -279,8 +279,9 @@ public sealed class LoggerConfiguration
             return _owner.EnableConsoleCompatibility();
         }
 
-        public LoggerConfiguration Event()
+        public LoggerConfiguration Event(string? outputTemplate = null)
         {
+            _ = outputTemplate; // Template is accepted for API compatibility.
             return _owner.EnableEventCompatibility();
         }
     }
