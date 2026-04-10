@@ -17,16 +17,19 @@ internal sealed class ObservableFileWriter : IDisposable
     private readonly ObservableLoggerOptions _options;
     private readonly object _syncRoot = new();
     private readonly Regex? _retentionRegex;
+    private readonly Regex? _countExtractionRegex;
 
     private StreamWriter? _writer;
     private string? _currentFilePath;
     private DateTimeOffset? _currentPeriodStart;
     private int _currentRollingCount = 1;
+    private bool _rollingCountInitialized;
 
     public ObservableFileWriter(ObservableLoggerOptions options)
     {
         _options = options;
         _retentionRegex = BuildRetentionRegex(_options.FileNameTemplate);
+        _countExtractionRegex = BuildCountExtractionRegex(_options.FileNameTemplate);
     }
 
     /// <summary>
@@ -69,6 +72,7 @@ internal sealed class ObservableFileWriter : IDisposable
     private void EnsureWriter(DateTimeOffset timestamp)
     {
         Directory.CreateDirectory(_options.LogFolder);
+        InitializeRollingCountFromExistingFiles();
         UpdateRollingState(timestamp);
         string filePath = Path.Combine(_options.LogFolder, ResolveFileName(timestamp, _currentRollingCount));
 
@@ -89,6 +93,47 @@ internal sealed class ObservableFileWriter : IDisposable
 
         _currentFilePath = filePath;
         CleanupOldFiles();
+    }
+
+    private void InitializeRollingCountFromExistingFiles()
+    {
+        if (_rollingCountInitialized)
+        {
+            return;
+        }
+
+        _rollingCountInitialized = true;
+        if (_countExtractionRegex == null || !Directory.Exists(_options.LogFolder))
+        {
+            return;
+        }
+
+        int maxCount = 0;
+        FileInfo[] files = new DirectoryInfo(_options.LogFolder).GetFiles("*", SearchOption.TopDirectoryOnly);
+        for (int i = 0; i < files.Length; i++)
+        {
+            Match match = _countExtractionRegex.Match(files[i].Name);
+            if (!match.Success)
+            {
+                continue;
+            }
+
+            Group countGroup = match.Groups["count"];
+            if (!countGroup.Success || !int.TryParse(countGroup.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed))
+            {
+                continue;
+            }
+
+            if (parsed > maxCount)
+            {
+                maxCount = parsed;
+            }
+        }
+
+        if (maxCount > 0)
+        {
+            _currentRollingCount = maxCount;
+        }
     }
 
     private string ResolveFileName(DateTimeOffset timestamp)
@@ -268,6 +313,58 @@ internal sealed class ObservableFileWriter : IDisposable
         }
 
         pattern.Append("$");
+        return new Regex(pattern.ToString(), RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+    }
+
+    private static Regex? BuildCountExtractionRegex(string? template)
+    {
+        if (string.IsNullOrWhiteSpace(template))
+        {
+            return null;
+        }
+
+        MatchCollection matches = TemplateTokenRegex.Matches(template);
+        StringBuilder pattern = new();
+        pattern.Append("^");
+
+        bool hasCount = false;
+        int last = 0;
+        foreach (Match match in matches)
+        {
+            if (match.Index > last)
+            {
+                pattern.Append(Regex.Escape(template.Substring(last, match.Index - last)));
+            }
+
+            string token = match.Groups["name"].Value;
+            if (string.Equals(token, "Count", StringComparison.Ordinal))
+            {
+                pattern.Append("(?<count>[0-9]+)");
+                hasCount = true;
+            }
+            else if (string.Equals(token, "Timestamp", StringComparison.Ordinal))
+            {
+                pattern.Append("[0-9]+");
+            }
+            else
+            {
+                pattern.Append(".*?");
+            }
+
+            last = match.Index + match.Length;
+        }
+
+        if (last < template.Length)
+        {
+            pattern.Append(Regex.Escape(template.Substring(last)));
+        }
+
+        pattern.Append("$");
+        if (!hasCount)
+        {
+            return null;
+        }
+
         return new Regex(pattern.ToString(), RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
     }
 }
