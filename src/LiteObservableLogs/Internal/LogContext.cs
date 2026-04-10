@@ -39,15 +39,17 @@ internal sealed class LogContext(LogEntry entry)
             return string.Empty;
         }
 
+        bool templateContainsExceptionToken = template.Contains("{Exception", StringComparison.Ordinal);
+
         return TemplateTokenRegex.Replace(template, match =>
         {
             string name = match.Groups["name"].Value;
             string? format = match.Groups["format"].Success ? match.Groups["format"].Value : null;
-            return ResolveToken(name, format);
+            return ResolveToken(name, format, templateContainsExceptionToken);
         });
     }
 
-    private string ResolveToken(string name, string? format)
+    private string ResolveToken(string name, string? format, bool templateContainsExceptionToken)
     {
         switch (name)
         {
@@ -60,7 +62,9 @@ internal sealed class LogContext(LogEntry entry)
                 return RenderLevel(format);
 
             case "Message":
-                return Message;
+                return templateContainsExceptionToken
+                    ? Message
+                    : Message + (Exception?.ToString() ?? string.Empty);
 
             case "Exception":
                 return Exception?.ToString() ?? string.Empty;
