@@ -51,56 +51,33 @@ internal sealed class LogContext(LogEntry entry)
 
     private string ResolveToken(string name, string? format, bool templateContainsExceptionToken)
     {
-        switch (name)
+        return name switch
         {
-            case "Timestamp":
-                return string.IsNullOrWhiteSpace(format)
-                    ? Timestamp.ToString("O", CultureInfo.InvariantCulture)
-                    : Timestamp.ToString(format, CultureInfo.InvariantCulture);
-
-            case "Level":
-                return RenderLevel(format);
-
-            case "Message":
-                return templateContainsExceptionToken
-                    ? Message
-                    : Message + (Exception?.ToString() ?? string.Empty);
-
-            case "Exception":
-                return Exception?.ToString() ?? string.Empty;
-
-            case "NewLine":
-                return Environment.NewLine;
-
-            case "SourceContext":
-                return SourceContext;
-
-            case "EventId":
-                return EventId.Id == 0 && string.IsNullOrWhiteSpace(EventId.Name)
-                    ? string.Empty
-                    : string.IsNullOrWhiteSpace(EventId.Name)
-                        ? EventId.Id.ToString(CultureInfo.InvariantCulture)
-                        : $"{EventId.Id}:{EventId.Name}";
-
-            case "Scopes":
-                return string.Join(" => ", Scopes);
-
-            case "Caller":
-                return Caller?.Render() ?? string.Empty;
-
-            case "ThreadId":
-                return ThreadId.HasValue
-                    ? (string.IsNullOrWhiteSpace(format)
-                        ? ThreadId.Value.ToString(CultureInfo.InvariantCulture)
-                        : ThreadId.Value.ToString(format, CultureInfo.InvariantCulture))
-                    : string.Empty;
-
-            case "UserName":
-                return HostUserName;
-
-            default:
-                return string.Empty;
-        }
+            "Timestamp" => string.IsNullOrWhiteSpace(format)
+                ? Timestamp.ToString("O", CultureInfo.InvariantCulture)
+                : Timestamp.ToString(format, CultureInfo.InvariantCulture),
+            "Level" => RenderLevel(format),
+            "Message" => templateContainsExceptionToken
+                ? Message
+                : Message + (Exception?.ToString() ?? string.Empty),
+            "Exception" => Exception?.ToString() ?? string.Empty,
+            "NewLine" => Environment.NewLine,
+            "SourceContext" => SourceContext,
+            "EventId" => EventId.Id == 0 && string.IsNullOrWhiteSpace(EventId.Name)
+                ? string.Empty
+                : string.IsNullOrWhiteSpace(EventId.Name)
+                    ? EventId.Id.ToString(CultureInfo.InvariantCulture)
+                    : $"{EventId.Id}:{EventId.Name}",
+            "Scopes" => string.Join(" => ", Scopes),
+            "Caller" => Caller?.Render() ?? string.Empty,
+            "ThreadId" => ThreadId.HasValue
+                ? (string.IsNullOrWhiteSpace(format)
+                    ? ThreadId.Value.ToString(CultureInfo.InvariantCulture)
+                    : ThreadId.Value.ToString(format, CultureInfo.InvariantCulture))
+                : string.Empty,
+            "UserName" => HostUserName,
+            _ => string.Empty,
+        };
     }
 
     private string RenderLevel(string? format)
