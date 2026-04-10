@@ -51,7 +51,7 @@ public sealed class LoggerConfiguration
     /// <summary>
     /// Sets how log records are dispatched to storage.
     /// </summary>
-    public LoggerConfiguration UseType(LoggerType type = LiteObservableLogs.LoggerType.Async)
+    public LoggerConfiguration UseType(global::LiteObservableLogs.LoggerType type = global::LiteObservableLogs.LoggerType.Async)
     {
         _options.LoggerType = type;
         return this;
@@ -244,6 +244,12 @@ public sealed class LoggerConfiguration
         return this;
     }
 
+    internal LoggerConfiguration SetWriteToOptionsCompatibility(string? outputTemplate)
+    {
+        _options.OutputTemplate = outputTemplate;
+        return this;
+    }
+
     private static string AppendRollingSuffix(string fileName, RollingInterval rollingInterval)
     {
         string extension = System.IO.Path.GetExtension(fileName);
@@ -293,6 +299,11 @@ public sealed class LoggerConfiguration
         public LoggerConfiguration Event(string? outputTemplate = null)
         {
             return _owner.EnableEventCompatibility(outputTemplate);
+        }
+
+        public LoggerConfiguration Option(string? outputTemplate = null)
+        {
+            return _owner.SetWriteToOptionsCompatibility(outputTemplate);
         }
     }
 
@@ -358,17 +369,17 @@ public sealed class LoggerConfiguration
 
         public LoggerConfiguration Sync()
         {
-            return _owner.UseType(LiteObservableLogs.LoggerType.Sync);
+            return _owner.UseType(global::LiteObservableLogs.LoggerType.Sync);
         }
 
         public LoggerConfiguration Async()
         {
-            return _owner.UseType(LiteObservableLogs.LoggerType.Async);
+            return _owner.UseType(global::LiteObservableLogs.LoggerType.Async);
         }
 
         public LoggerConfiguration Silent()
         {
-            return _owner.UseType(LiteObservableLogs.LoggerType.Silent);
+            return _owner.UseType(global::LiteObservableLogs.LoggerType.Silent);
         }
     }
 }

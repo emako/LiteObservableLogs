@@ -96,6 +96,11 @@ public sealed class ObservableLoggerOptions
     public string? EventOutputTemplate { get; set; }
 
     /// <summary>
+    /// Gets or sets the global template used when a sink-specific template is not provided.
+    /// </summary>
+    public string? OutputTemplate { get; set; }
+
+    /// <summary>
     /// Gets or sets the maximum retained file count. Null keeps all files.
     /// </summary>
     public int? RetainedFileCountLimit { get; set; }
@@ -134,6 +139,7 @@ public sealed class ObservableLoggerOptions
             ConsoleOutputTemplate = ConsoleOutputTemplate,
             PublishToEvent = PublishToEvent,
             EventOutputTemplate = EventOutputTemplate,
+            OutputTemplate = OutputTemplate,
             RetainedFileCountLimit = RetainedFileCountLimit,
             RetainedFileTimeLimit = RetainedFileTimeLimit,
             TimestampProvider = TimestampProvider,

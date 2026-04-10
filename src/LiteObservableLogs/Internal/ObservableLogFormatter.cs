@@ -20,7 +20,7 @@ internal sealed class ObservableLogFormatter
     /// </summary>
     public string FormatFile(LogEntry entry)
     {
-        return FormatWithTemplateOrFallback(entry, _options.FileOutputTemplate);
+        return FormatWithTemplateOrFallback(entry, _options.FileOutputTemplate, _options.OutputTemplate);
     }
 
     /// <summary>
@@ -28,7 +28,7 @@ internal sealed class ObservableLogFormatter
     /// </summary>
     public string FormatConsole(LogEntry entry)
     {
-        return FormatWithTemplateOrFallback(entry, _options.ConsoleOutputTemplate);
+        return FormatWithTemplateOrFallback(entry, _options.ConsoleOutputTemplate, _options.OutputTemplate);
     }
 
     /// <summary>
@@ -36,11 +36,12 @@ internal sealed class ObservableLogFormatter
     /// </summary>
     public string FormatEvent(LogEntry entry)
     {
-        return FormatWithTemplateOrFallback(entry, _options.EventOutputTemplate);
+        return FormatWithTemplateOrFallback(entry, _options.EventOutputTemplate, _options.OutputTemplate);
     }
 
-    private string FormatWithTemplateOrFallback(LogEntry entry, string? template)
+    private string FormatWithTemplateOrFallback(LogEntry entry, string? sinkTemplate, string? globalTemplate)
     {
+        string? template = string.IsNullOrWhiteSpace(sinkTemplate) ? globalTemplate : sinkTemplate;
         if (!string.IsNullOrWhiteSpace(template))
         {
             return new LogContext(entry).Render(template!);
