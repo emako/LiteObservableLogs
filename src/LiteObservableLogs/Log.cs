@@ -113,7 +113,7 @@ public static class Log
     /// <summary>
     /// Writes an exception as an error log entry with an optional custom message.
     /// </summary>
-    public static void Exception(System.Exception exception, string? message = null)
+    public static void Exception(Exception exception, string? message = null)
     {
         _logger.Exception(exception, message);
     }

@@ -60,7 +60,7 @@ internal sealed class ObservableLogSink : IDisposable
             eventId,
             message,
             exception,
-            scopes ?? Array.Empty<string>(),
+            scopes ?? [],
             resolvedCaller);
 
         string fileRendered = _formatter.FormatFile(entry);

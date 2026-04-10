@@ -30,7 +30,7 @@ public partial class App : Application
                     retainedFileTimeLimit: TimeSpan.FromDays(21))
                 .WriteTo.Console(outputTemplate:
                     "[{Timestamp:HH:mm:ss} {Level:u3}] {Message}{NewLine}{Exception}")
-                .WriteTo.Event()
+                .WriteTo.Event(outputTemplate: "[{Timestamp:HH:mm:ss.fff}] [{Level:u3}] {SourceContext}{NewLine}{Message}{NewLine}{Exception}{NewLine}")
                 .MinimumLevel.Debug()
                 .CreateLogger();
 
