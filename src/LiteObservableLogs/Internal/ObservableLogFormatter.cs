@@ -121,7 +121,7 @@ internal sealed class ObservableLogFormatter
             return string.Empty;
         }
 
-        return value
+        return value!
             .Replace("\r\n", "\\n")
             .Replace("\n", "\\n")
             .Replace("\r", string.Empty);

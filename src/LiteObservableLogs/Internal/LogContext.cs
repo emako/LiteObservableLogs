@@ -18,8 +18,6 @@ internal sealed class LogContext(LogEntry entry)
 
     public LogLevel Level { get; } = entry.Level;
 
-    public string SourceContext { get; } = entry.Category;
-
     public EventId EventId { get; } = entry.EventId;
 
     public string Message { get; } = entry.Message;
@@ -62,7 +60,7 @@ internal sealed class LogContext(LogEntry entry)
                 : Message + (Exception?.ToString() ?? string.Empty),
             "Exception" => Exception?.ToString() ?? string.Empty,
             "NewLine" => Environment.NewLine,
-            "SourceContext" => SourceContext,
+            "SourceContext" => entry.Category,
             "EventId" => EventId.Id == 0 && string.IsNullOrWhiteSpace(EventId.Name)
                 ? string.Empty
                 : string.IsNullOrWhiteSpace(EventId.Name)
