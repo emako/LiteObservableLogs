@@ -40,7 +40,7 @@ internal sealed class ObservableLogSink : IDisposable
     /// </summary>
     public void Write(
         string category,
-        Microsoft.Extensions.Logging.LogLevel level,
+        LogLevel level,
         EventId eventId,
         string message,
         Exception? exception,
@@ -61,7 +61,7 @@ internal sealed class ObservableLogSink : IDisposable
             eventId,
             message,
             exception,
-            scopes ?? Array.Empty<string>(),
+            scopes ?? [],
             resolvedCaller);
 
         string fileRendered = _formatter.FormatFile(entry);
