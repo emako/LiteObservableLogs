@@ -1,5 +1,5 @@
-﻿using System.Windows;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System.Windows;
 
 namespace LiteObservableLogs.Demo.WPF;
 
@@ -8,8 +8,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        MainViewModel vm = App.Host.Services.GetRequiredService<MainViewModel>();
-        DataContext = vm;
-        Closed += (_, _) => vm.Dispose();
+        DataContext = App.Host.Services.GetRequiredService<MainViewModel>();
+        Closed += (_, _) => ((IDisposable)DataContext).Dispose();
     }
 }

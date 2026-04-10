@@ -1,19 +1,16 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
+using System.Windows;
 
 namespace LiteObservableLogs.Demo.WPF;
 
 public sealed partial class MainViewModel : ObservableObject, IDisposable
 {
-    private readonly ILogger<MainViewModel> _logger;
-
     public ObservableCollection<string> LiveLines { get; } = [];
 
-    public MainViewModel(ILogger<MainViewModel> logger)
+    public MainViewModel()
     {
-        _logger = logger;
         Log.Received += OnLogReceived;
     }
 
@@ -25,7 +22,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void OnLogReceived(object? sender, ObservableLogEvent e)
     {
         string line = e.RenderedText;
-        System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+        Application.Current?.Dispatcher.Invoke(() =>
         {
             LiveLines.Insert(0, line);
             while (LiveLines.Count > 200)
@@ -38,38 +35,37 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void LogTrace()
     {
-        Log.Trace("Trace: Button test {Time}", DateTime.Now.ToString("HH:mm:ss.fff"));
-        _logger.LogTrace("Trace: Button test {Time}", DateTime.Now.ToString("HH:mm:ss.fff"));
+        Log.Trace("Trace: Button test");
     }
 
     [RelayCommand]
     private void LogDebug()
     {
-        _logger.LogDebug("Debug: Button test {Time}", DateTime.Now.ToString("HH:mm:ss.fff"));
+        Log.Debug($"Debug: Button test");
     }
 
     [RelayCommand]
     private void LogInformation()
     {
-        _logger.LogInformation("Information: Button test {Time}", DateTime.Now.ToString("HH:mm:ss.fff"));
+        Log.Information("Information: Button test");
     }
 
     [RelayCommand]
     private void LogWarning()
     {
-        _logger.LogWarning("Warning: Button test {Time}", DateTime.Now.ToString("HH:mm:ss.fff"));
+        Log.Warning("Warning: Button test");
     }
 
     [RelayCommand]
     private void LogError()
     {
-        _logger.LogError("Error: Button test {Time}", DateTime.Now.ToString("HH:mm:ss.fff"));
+        Log.Error("Error: Button test");
     }
 
     [RelayCommand]
     private void LogCritical()
     {
-        _logger.LogCritical("Critical: Button test {Time}", DateTime.Now.ToString("HH:mm:ss.fff"));
+        Log.Critical("Critical: Button test");
     }
 
     [RelayCommand]
@@ -81,7 +77,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Exception: Written to log after catch");
+            Log.Exception(ex, "Exception: Written to log after catch");
         }
     }
 }
