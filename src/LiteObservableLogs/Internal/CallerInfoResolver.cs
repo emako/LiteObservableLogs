@@ -22,17 +22,17 @@ internal static class CallerInfoResolver
             string? ns = declaringType?.Namespace;
             string? asm = declaringType?.Assembly.GetName().Name;
 
-            if (ns != null && ns.StartsWith("LiteObservableLogs", System.StringComparison.Ordinal))
+            if (ns != null && ns.StartsWith("LiteObservableLogs", StringComparison.Ordinal))
             {
                 continue;
             }
 
-            if (ns != null && ns.StartsWith("Microsoft.Extensions.Logging", System.StringComparison.Ordinal))
+            if (ns != null && ns.StartsWith("Microsoft.Extensions.Logging", StringComparison.Ordinal))
             {
                 continue;
             }
 
-            if (asm != null && asm.StartsWith("Microsoft.Extensions.Logging", System.StringComparison.Ordinal))
+            if (asm != null && asm.StartsWith("Microsoft.Extensions.Logging", StringComparison.Ordinal))
             {
                 continue;
             }

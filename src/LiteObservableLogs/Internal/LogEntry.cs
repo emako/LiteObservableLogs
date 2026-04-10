@@ -8,7 +8,7 @@ internal sealed class LogEntry
 {
     public LogEntry(
         DateTimeOffset timestamp,
-        Microsoft.Extensions.Logging.LogLevel level,
+        LogLevel level,
         string category,
         EventId eventId,
         string message,
@@ -17,7 +17,7 @@ internal sealed class LogEntry
         CallerInfo? caller)
     {
         Timestamp = timestamp;
-        Level = (LogLevel)level;
+        Level = level;
         Category = category;
         EventId = eventId;
         Message = message;

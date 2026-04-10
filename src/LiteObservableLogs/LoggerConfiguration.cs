@@ -189,6 +189,7 @@ public sealed class LoggerConfiguration
 
     internal LoggerConfiguration SetWriteToFileCompatibility(
         string path,
+        string? outputTemplate,
         RollingInterval rollingInterval,
         int? retainedFileCountLimit,
         TimeSpan? retainedFileTimeLimit)
@@ -207,6 +208,7 @@ public sealed class LoggerConfiguration
             : folder!;
         _options.FileNameTemplate = fileName;
         _options.FileName = null;
+        _options.FileOutputTemplate = outputTemplate;
         _options.RetainedFileCountLimit = retainedFileCountLimit;
         _options.RetainedFileTimeLimit = retainedFileTimeLimit;
 
@@ -219,15 +221,17 @@ public sealed class LoggerConfiguration
         return this;
     }
 
-    internal LoggerConfiguration EnableConsoleCompatibility()
+    internal LoggerConfiguration EnableConsoleCompatibility(string? outputTemplate)
     {
         _options.WriteToConsole = true;
+        _options.ConsoleOutputTemplate = outputTemplate;
         return this;
     }
 
-    internal LoggerConfiguration EnableEventCompatibility()
+    internal LoggerConfiguration EnableEventCompatibility(string? outputTemplate)
     {
         _options.PublishToEvent = true;
+        _options.EventOutputTemplate = outputTemplate;
         return this;
     }
 
@@ -269,20 +273,17 @@ public sealed class LoggerConfiguration
             int? retainedFileCountLimit = null,
             TimeSpan? retainedFileTimeLimit = null)
         {
-            _ = outputTemplate; // Template is accepted for API compatibility.
-            return _owner.SetWriteToFileCompatibility(path, rollingInterval, retainedFileCountLimit, retainedFileTimeLimit);
+            return _owner.SetWriteToFileCompatibility(path, outputTemplate, rollingInterval, retainedFileCountLimit, retainedFileTimeLimit);
         }
 
         public LoggerConfiguration Console(string? outputTemplate = null)
         {
-            _ = outputTemplate; // Template is accepted for API compatibility.
-            return _owner.EnableConsoleCompatibility();
+            return _owner.EnableConsoleCompatibility(outputTemplate);
         }
 
         public LoggerConfiguration Event(string? outputTemplate = null)
         {
-            _ = outputTemplate; // Template is accepted for API compatibility.
-            return _owner.EnableEventCompatibility();
+            return _owner.EnableEventCompatibility(outputTemplate);
         }
     }
 

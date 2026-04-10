@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using System.Text;
 
 namespace LiteObservableLogs.Internal;
@@ -15,12 +16,46 @@ internal sealed class ObservableLogFormatter
     }
 
     /// <summary>
-    /// Converts a log entry into pipe-delimited output ready for file writing.
+    /// Formats file output using the configured file template when present.
     /// </summary>
-    public string Format(LogEntry entry)
+    public string FormatFile(LogEntry entry)
+    {
+        return FormatWithTemplateOrFallback(entry, _options.FileOutputTemplate);
+    }
+
+    /// <summary>
+    /// Formats console output using the configured console template when present.
+    /// </summary>
+    public string FormatConsole(LogEntry entry)
+    {
+        return FormatWithTemplateOrFallback(entry, _options.ConsoleOutputTemplate);
+    }
+
+    /// <summary>
+    /// Formats published event text using the configured event template when present.
+    /// </summary>
+    public string FormatEvent(LogEntry entry)
+    {
+        return FormatWithTemplateOrFallback(entry, _options.EventOutputTemplate);
+    }
+
+    private string FormatWithTemplateOrFallback(LogEntry entry, string? template)
+    {
+        if (!string.IsNullOrWhiteSpace(template))
+        {
+            return new LogContext(entry).Render(template!);
+        }
+
+        return FormatFallback(entry);
+    }
+
+    /// <summary>
+    /// Converts a log entry into the legacy pipe-delimited default output.
+    /// </summary>
+    private string FormatFallback(LogEntry entry)
     {
         StringBuilder sb = new();
-        sb.Append(RenderLevel((Microsoft.Extensions.Logging.LogLevel)entry.Level))
+        sb.Append(RenderLevel(entry.Level))
           .Append('|')
           .Append(entry.Timestamp.ToString("yyyy-MM-dd|HH:mm:ss.fff"));
 
@@ -61,16 +96,16 @@ internal sealed class ObservableLogFormatter
     /// <summary>
     /// Maps Microsoft log levels to compact textual tokens.
     /// </summary>
-    private static string RenderLevel(Microsoft.Extensions.Logging.LogLevel level)
+    private static string RenderLevel(LogLevel level)
     {
         return level switch
         {
-            Microsoft.Extensions.Logging.LogLevel.Trace => "TRACE",
-            Microsoft.Extensions.Logging.LogLevel.Debug => "DEBUG",
-            Microsoft.Extensions.Logging.LogLevel.Information => "INFO",
-            Microsoft.Extensions.Logging.LogLevel.Warning => "WARN",
-            Microsoft.Extensions.Logging.LogLevel.Error => "ERROR",
-            Microsoft.Extensions.Logging.LogLevel.Critical => "FATAL",
+            LogLevel.Trace => "TRACE",
+            LogLevel.Debug => "DEBUG",
+            LogLevel.Information => "INFO",
+            LogLevel.Warning => "WARN",
+            LogLevel.Error => "ERROR",
+            LogLevel.Critical => "FATAL",
             _ => "NONE",
         };
     }
@@ -85,7 +120,7 @@ internal sealed class ObservableLogFormatter
             return string.Empty;
         }
 
-        return value
+        return value!
             .Replace("\r\n", "\\n")
             .Replace("\n", "\\n")
             .Replace("\r", string.Empty);

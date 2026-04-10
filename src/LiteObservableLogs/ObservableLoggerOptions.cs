@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 
@@ -65,9 +66,24 @@ public sealed class ObservableLoggerOptions
     public bool WriteToConsole { get; set; }
 
     /// <summary>
+    /// Gets or sets the template used for file output.
+    /// </summary>
+    public string? FileOutputTemplate { get; set; }
+
+    /// <summary>
+    /// Gets or sets the template used for console output.
+    /// </summary>
+    public string? ConsoleOutputTemplate { get; set; }
+
+    /// <summary>
     /// Gets or sets whether log entries should be published to <see cref="Log.Received"/>.
     /// </summary>
     public bool PublishToEvent { get; set; }
+
+    /// <summary>
+    /// Gets or sets the template used for published event text.
+    /// </summary>
+    public string? EventOutputTemplate { get; set; }
 
     /// <summary>
     /// Gets or sets the maximum retained file count. Null keeps all files.
@@ -97,7 +113,10 @@ public sealed class ObservableLoggerOptions
             IncludeCategory = IncludeCategory,
             IncludeEventId = IncludeEventId,
             WriteToConsole = WriteToConsole,
+            FileOutputTemplate = FileOutputTemplate,
+            ConsoleOutputTemplate = ConsoleOutputTemplate,
             PublishToEvent = PublishToEvent,
+            EventOutputTemplate = EventOutputTemplate,
             RetainedFileCountLimit = RetainedFileCountLimit,
             RetainedFileTimeLimit = RetainedFileTimeLimit,
         };

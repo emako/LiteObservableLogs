@@ -121,6 +121,72 @@ public sealed class LiteObservableLogsTests
         Assert.Contains("boom", content);
     }
 
+    /// <summary>
+    /// Verifies file templates render timestamp, level, category, message, and exception text.
+    /// </summary>
+    [Fact]
+    public void FileOutputTemplateIsRendered()
+    {
+        using TempDirectory temp = new();
+        using (ObservableLoggerFacade logger = new LoggerConfiguration()
+            .WriteTo.File(
+                Path.Combine(temp.Path, "templated.log"),
+                outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss}] [{Level:u3}] {SourceContext}{NewLine}{Message}{NewLine}{Exception}")
+            .UseType(LoggerType.Sync)
+            .UseCategory("TemplateCategory")
+            .MinimumLevel.Debug()
+            .CreateLogger())
+        {
+            logger.Exception(new InvalidOperationException("boom"), "failure");
+            logger.Flush();
+        }
+
+        string content = ReadAllTextShared(Path.Combine(temp.Path, "templated.log"));
+        Assert.Contains("[ERR] TemplateCategory", content);
+        Assert.Contains("failure", content);
+        Assert.Contains("InvalidOperationException", content);
+        Assert.Contains(Environment.NewLine, content);
+    }
+
+    /// <summary>
+    /// Verifies console and event outputs each use their own configured templates.
+    /// </summary>
+    [Fact]
+    public void ConsoleAndEventOutputTemplatesAreRendered()
+    {
+        TextWriter originalOut = Console.Out;
+        using StringWriter console = new();
+        Console.SetOut(console);
+
+        ObservableLogEvent? received = null;
+        EventHandler<ObservableLogEvent> handler = (_, entry) => received = entry;
+        Log.Received += handler;
+
+        try
+        {
+            using ObservableLoggerFacade logger = new LoggerConfiguration()
+                .WriteTo.Console("CONSOLE|{Level:u3}|{SourceContext}|{Message}")
+                .WriteTo.Event("EVENT|{Level:u3}|{SourceContext}|{Message}")
+                .UseType(LoggerType.Sync)
+                .UseCategory("ConsoleEventCategory")
+                .MinimumLevel.Information()
+                .CreateLogger();
+
+            logger.Information("hello");
+            logger.Flush();
+        }
+        finally
+        {
+            Log.Received -= handler;
+            Console.SetOut(originalOut);
+        }
+
+        string consoleText = console.ToString();
+        Assert.Contains("CONSOLE|INF|ConsoleEventCategory|hello", consoleText);
+        Assert.NotNull(received);
+        Assert.Equal("EVENT|INF|ConsoleEventCategory|hello", received!.RenderedText);
+    }
+
     private static string WaitForFileContent(string path)
     {
         // Async logging can complete slightly later; poll briefly for stable content.

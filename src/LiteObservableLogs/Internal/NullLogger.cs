@@ -17,13 +17,13 @@ internal sealed class NullLogger : ILogger
         return NullScope.Instance;
     }
 
-    public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel logLevel)
+    public bool IsEnabled(LogLevel logLevel)
     {
         return false;
     }
 
     public void Log<TState>(
-        Microsoft.Extensions.Logging.LogLevel logLevel,
+        LogLevel logLevel,
         EventId eventId,
         TState state,
         Exception? exception,

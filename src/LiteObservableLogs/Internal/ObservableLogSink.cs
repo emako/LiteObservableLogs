@@ -24,14 +24,14 @@ internal sealed class ObservableLogSink : IDisposable
     /// <summary>
     /// Determines whether an incoming level should be accepted.
     /// </summary>
-    public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel level)
+    public bool IsEnabled(LogLevel level)
     {
         if (_disposed || _options.LoggerType == LoggerType.Silent)
         {
             return false;
         }
 
-        return level != Microsoft.Extensions.Logging.LogLevel.None && level >= (Microsoft.Extensions.Logging.LogLevel)_options.MinLevel;
+        return level != LogLevel.None && level >= _options.MinLevel;
     }
 
     /// <summary>
@@ -39,7 +39,7 @@ internal sealed class ObservableLogSink : IDisposable
     /// </summary>
     public void Write(
         string category,
-        Microsoft.Extensions.Logging.LogLevel level,
+        LogLevel level,
         EventId eventId,
         string message,
         Exception? exception,
@@ -60,13 +60,13 @@ internal sealed class ObservableLogSink : IDisposable
             eventId,
             message,
             exception,
-            scopes ?? [],
+            scopes ?? Array.Empty<string>(),
             resolvedCaller);
 
-        string rendered = _formatter.Format(entry);
-        _dispatcher.Enqueue(entry, rendered);
-        WriteConsole(rendered);
-        PublishEvent(entry, rendered);
+        string fileRendered = _formatter.FormatFile(entry);
+        _dispatcher.Enqueue(entry, fileRendered);
+        WriteConsole(entry);
+        PublishEvent(entry);
     }
 
     /// <summary>
@@ -109,26 +109,28 @@ internal sealed class ObservableLogSink : IDisposable
             : new AsyncLogDispatcher(writer);
     }
 
-    private void WriteConsole(string rendered)
+    private void WriteConsole(LogEntry entry)
     {
         if (!_options.WriteToConsole)
         {
             return;
         }
 
-        Console.WriteLine(rendered);
+        Console.WriteLine(_formatter.FormatConsole(entry));
     }
 
-    private void PublishEvent(LogEntry entry, string rendered)
+    private void PublishEvent(LogEntry entry)
     {
         if (!_options.PublishToEvent)
         {
             return;
         }
 
+        string rendered = _formatter.FormatEvent(entry);
+
         Log.Publish(new ObservableLogEvent(
             entry.Timestamp,
-            (LogLevel)entry.Level,
+            entry.Level,
             entry.Category,
             entry.Message,
             entry.Exception,
