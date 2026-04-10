@@ -1,19 +1,12 @@
 namespace LiteObservableLogs.Internal;
 
-internal sealed class CallerInfo
+internal sealed class CallerInfo(string? fileName, string? memberName, int lineNumber)
 {
-    public CallerInfo(string? fileName, string? memberName, int lineNumber)
-    {
-        FileName = fileName;
-        MemberName = memberName;
-        LineNumber = lineNumber;
-    }
+    public string? FileName { get; } = fileName;
 
-    public string? FileName { get; }
+    public string? MemberName { get; } = memberName;
 
-    public string? MemberName { get; }
-
-    public int LineNumber { get; }
+    public int LineNumber { get; } = lineNumber;
 
     public string Render()
     {

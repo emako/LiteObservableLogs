@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
@@ -38,7 +39,7 @@ internal sealed class LogContext
 
     public CallerInfo? Caller { get; }
 
-    public System.Collections.Generic.IReadOnlyList<string> Scopes { get; }
+    public IReadOnlyList<string> Scopes { get; }
 
     public string Render(string template)
     {
@@ -63,26 +64,35 @@ internal sealed class LogContext
                 return string.IsNullOrWhiteSpace(format)
                     ? Timestamp.ToString("O", CultureInfo.InvariantCulture)
                     : Timestamp.ToString(format, CultureInfo.InvariantCulture);
+
             case "Level":
                 return RenderLevel(format);
+
             case "Message":
                 return Message;
+
             case "Exception":
                 return Exception?.ToString() ?? string.Empty;
+
             case "NewLine":
                 return Environment.NewLine;
+
             case "SourceContext":
                 return SourceContext;
+
             case "EventId":
                 return EventId.Id == 0 && string.IsNullOrWhiteSpace(EventId.Name)
                     ? string.Empty
                     : string.IsNullOrWhiteSpace(EventId.Name)
                         ? EventId.Id.ToString(CultureInfo.InvariantCulture)
                         : $"{EventId.Id}:{EventId.Name}";
+
             case "Scopes":
                 return string.Join(" => ", Scopes);
+
             case "Caller":
                 return Caller?.Render() ?? string.Empty;
+
             default:
                 return string.Empty;
         }
@@ -131,6 +141,62 @@ internal sealed class LogContext
                 LogLevel.Error => "err",
                 LogLevel.Critical => "ftl",
                 _ => "non",
+            };
+        }
+
+        if (string.Equals(format, "u4", StringComparison.OrdinalIgnoreCase))
+        {
+            return Level switch
+            {
+                LogLevel.Trace => "TRCE",
+                LogLevel.Debug => "DBUG",
+                LogLevel.Information => "INFO",
+                LogLevel.Warning => "WARN",
+                LogLevel.Error => "ERRO",
+                LogLevel.Critical => "CRIT",
+                _ => "NONE",
+            };
+        }
+
+        if (string.Equals(format, "w4", StringComparison.OrdinalIgnoreCase))
+        {
+            return Level switch
+            {
+                LogLevel.Trace => "trce",
+                LogLevel.Debug => "dbug",
+                LogLevel.Information => "info",
+                LogLevel.Warning => "warn",
+                LogLevel.Error => "erro",
+                LogLevel.Critical => "crit",
+                _ => "none",
+            };
+        }
+
+        if (string.Equals(format, "u5", StringComparison.OrdinalIgnoreCase))
+        {
+            return Level switch
+            {
+                LogLevel.Trace => "TRCEE",
+                LogLevel.Debug => "DEBUG",
+                LogLevel.Information => "INFO ",
+                LogLevel.Warning => "WARN ",
+                LogLevel.Error => "ERROR",
+                LogLevel.Critical => "FATAL",
+                _ => "NONE ",
+            };
+        }
+
+        if (string.Equals(format, "w5", StringComparison.OrdinalIgnoreCase))
+        {
+            return Level switch
+            {
+                LogLevel.Trace => "trace",
+                LogLevel.Debug => "debug",
+                LogLevel.Information => "info ",
+                LogLevel.Warning => "warn ",
+                LogLevel.Error => "error",
+                LogLevel.Critical => "fatal",
+                _ => "none ",
             };
         }
 
