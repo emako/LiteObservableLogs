@@ -1,45 +1,34 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
-using Microsoft.Extensions.Logging;
 
 namespace LiteObservableLogs.Internal;
 
 /// <summary>
 /// Materialized view of a log entry used by output-template rendering.
 /// </summary>
-internal sealed class LogContext
+internal sealed class LogContext(LogEntry entry)
 {
     private static readonly Regex TemplateTokenRegex = new(@"\{(?<name>[A-Za-z0-9_]+)(:(?<format>[^}]+))?\}", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    private static readonly string HostUserName = Environment.UserName;
 
-    public LogContext(LogEntry entry)
-    {
-        Timestamp = entry.Timestamp;
-        Level = entry.Level;
-        SourceContext = entry.Category;
-        EventId = entry.EventId;
-        Message = entry.Message;
-        Exception = entry.Exception;
-        Caller = entry.Caller;
-        Scopes = entry.Scopes;
-    }
+    public DateTimeOffset Timestamp { get; } = entry.Timestamp;
 
-    public DateTimeOffset Timestamp { get; }
+    public LogLevel Level { get; } = entry.Level;
 
-    public LogLevel Level { get; }
+    public string SourceContext { get; } = entry.Category;
 
-    public string SourceContext { get; }
+    public EventId EventId { get; } = entry.EventId;
 
-    public EventId EventId { get; }
+    public string Message { get; } = entry.Message;
 
-    public string Message { get; }
+    public Exception? Exception { get; } = entry.Exception;
 
-    public Exception? Exception { get; }
+    public CallerInfo? Caller { get; } = entry.Caller;
 
-    public CallerInfo? Caller { get; }
-
-    public IReadOnlyList<string> Scopes { get; }
+    public IReadOnlyList<string> Scopes { get; } = entry.Scopes;
 
     public string Render(string template)
     {
@@ -92,6 +81,9 @@ internal sealed class LogContext
 
             case "Caller":
                 return Caller?.Render() ?? string.Empty;
+
+            case "UserName":
+                return HostUserName;
 
             default:
                 return string.Empty;

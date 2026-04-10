@@ -26,14 +26,14 @@ public partial class App : Application
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.File(logFile,
                     outputTemplate:
-                    "[{Timestamp:HH:mm:ss.fff}] [{Level:u3}] {SourceContext}{NewLine}{Message}{NewLine}{Exception}{NewLine}",
+                    "[{Timestamp:HH:mm:ss.fff}] [{Level:u5}] {SourceContext}{NewLine}{Message}{NewLine}{Exception}{NewLine}",
                     rollingInterval: RollingInterval.Day,
                     retainedFileCountLimit: 31,
                     retainedFileTimeLimit: TimeSpan.FromDays(21))
                 .WriteTo.Console(
-                    outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message}{NewLine}{Exception}",
+                    outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u5}] {Message}{NewLine}{Exception}",
                     target: ConsoleTarget.Debug)
-                .WriteTo.Event(outputTemplate: "[{Timestamp:HH:mm:ss.fff}] [{Level:u3}] {SourceContext}{NewLine}{Message}{NewLine}{Exception}{NewLine}")
+                .WriteTo.Event(outputTemplate: "[{Timestamp:HH:mm:ss.fff}] [{Level:u5}] {SourceContext}{NewLine}{Message}{NewLine}{Exception}{NewLine}")
                 .LoggerType.Async()
                 .MinimumLevel.Debug()
                 .CreateLogger();
@@ -51,4 +51,3 @@ public partial class App : Application
     /// </summary>
     public static IHost Host => _host;
 }
-

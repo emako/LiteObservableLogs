@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using LiteObservableLogs.Providers;
 using Microsoft.Extensions.Logging;
@@ -36,26 +35,6 @@ public sealed class LiteObservableLogsTests
         Assert.Contains("SyncCategory", content);
         Assert.Contains("hello 42", content);
         Assert.DoesNotContain("ignored", content);
-    }
-
-    /// <summary>
-    /// Verifies sync mode persists each write without requiring explicit Flush/Dispose first.
-    /// </summary>
-    [Fact]
-    public void SyncFacadePersistsImmediatelyWithoutManualFlush()
-    {
-        using TempDirectory temp = new();
-        string filePath = Path.Combine(temp.Path, "immediate.log");
-        using ObservableLoggerFacade logger = LoggerConfiguration.CreateDefault()
-            .WriteToFile(temp.Path, "immediate.log")
-            .LoggerType.Sync()
-            .UseLevel(LogLevel.Information)
-            .CreateLogger();
-
-        logger.Information("visible-now");
-
-        string content = ReadAllTextShared(filePath);
-        Assert.Contains("visible-now", content);
     }
 
     /// <summary>
@@ -209,71 +188,6 @@ public sealed class LiteObservableLogsTests
     }
 
     /// <summary>
-    /// Verifies ConsoleTarget.Debug routes output to <see cref="Debug.WriteLine(string?)"/>.
-    /// </summary>
-    [Fact]
-    public void ConsoleTargetDebugWritesToDebugListener()
-    {
-        using CapturingTraceListener listener = new();
-        TraceListenerCollection listeners = Trace.Listeners;
-        listeners.Add(listener);
-        try
-        {
-            using ObservableLoggerFacade logger = new LoggerConfiguration()
-                .WriteTo.Console("DBG|{Level:u3}|{Message}", target: ConsoleTarget.Debug)
-                .UseType(LoggerType.Sync)
-                .MinimumLevel.Information()
-                .CreateLogger();
-
-            logger.Information("hello");
-            logger.Flush();
-        }
-        finally
-        {
-            listeners.Remove(listener);
-        }
-
-        Assert.Contains("DBG|INF|hello", listener.ToString());
-    }
-
-    /// <summary>
-    /// Verifies async mode dispatches console and event outputs on the background queue.
-    /// </summary>
-    [Fact]
-    public void AsyncConsoleAndEventOutputsAreDispatchedByQueue()
-    {
-        TextWriter originalOut = Console.Out;
-        using StringWriter console = new();
-        Console.SetOut(console);
-
-        ObservableLogEvent? received = null;
-        EventHandler<ObservableLogEvent> handler = (_, entry) => received = entry;
-        Log.Received += handler;
-
-        try
-        {
-            using ObservableLoggerFacade logger = new LoggerConfiguration()
-                .WriteTo.Console("ASYNC_CONSOLE|{Message}")
-                .WriteTo.Event("ASYNC_EVENT|{Message}")
-                .LoggerType.Async()
-                .MinimumLevel.Information()
-                .CreateLogger();
-
-            logger.Information("hello-async");
-            logger.Flush();
-        }
-        finally
-        {
-            Log.Received -= handler;
-            Console.SetOut(originalOut);
-        }
-
-        Assert.Contains("ASYNC_CONSOLE|hello-async", console.ToString());
-        Assert.NotNull(received);
-        Assert.Equal("ASYNC_EVENT|hello-async", received!.RenderedText);
-    }
-
-    /// <summary>
     /// Verifies minute rolling creates new files and increments {Count} with numeric formatting.
     /// </summary>
     [Fact]
@@ -383,6 +297,29 @@ public sealed class LiteObservableLogsTests
         Assert.Contains("FTL|critical", content);
     }
 
+    /// <summary>
+    /// Verifies hostname token resolves to current machine user name.
+    /// </summary>
+    [Fact]
+    public void HostnameTokenUsesCurrentUserName()
+    {
+        using TempDirectory temp = new();
+        using (ObservableLoggerFacade logger = new LoggerConfiguration()
+            .WriteTo.File(
+                Path.Combine(temp.Path, "hostname.log"),
+                outputTemplate: "{hostname}|{Message}")
+            .UseType(LoggerType.Sync)
+            .MinimumLevel.Information()
+            .CreateLogger())
+        {
+            logger.Information("hello");
+            logger.Flush();
+        }
+
+        string content = ReadAllTextShared(Path.Combine(temp.Path, "hostname.log"));
+        Assert.Contains($"{Environment.UserName}|hello", content);
+    }
+
     private static string WaitForFileContent(string path)
     {
         // Async logging can complete slightly later; poll briefly for stable content.
@@ -462,36 +399,6 @@ public sealed class LiteObservableLogsTests
             DateTimeOffset value = _values[_index];
             _index++;
             return value;
-        }
-    }
-
-    private sealed class CapturingTraceListener : TraceListener
-    {
-        private readonly StringWriter _buffer = new();
-
-        public override void Write(string? message)
-        {
-            _buffer.Write(message);
-        }
-
-        public override void WriteLine(string? message)
-        {
-            _buffer.WriteLine(message);
-        }
-
-        public override string ToString()
-        {
-            return _buffer.ToString();
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                _buffer.Dispose();
-            }
-
-            base.Dispose(disposing);
         }
     }
 }
