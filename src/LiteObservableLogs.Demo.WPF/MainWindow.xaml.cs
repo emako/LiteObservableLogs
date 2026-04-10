@@ -1,5 +1,4 @@
 ﻿using System.Windows;
-using LiteObservableLogs.Demo.WPF.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace LiteObservableLogs.Demo.WPF;

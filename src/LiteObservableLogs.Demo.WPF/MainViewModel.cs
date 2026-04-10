@@ -3,13 +3,13 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
 
-namespace LiteObservableLogs.Demo.WPF.ViewModels;
+namespace LiteObservableLogs.Demo.WPF;
 
 public sealed partial class MainViewModel : ObservableObject, IDisposable
 {
     private readonly ILogger<MainViewModel> _logger;
 
-    public ObservableCollection<string> LiveLines { get; } = new();
+    public ObservableCollection<string> LiveLines { get; } = [];
 
     public MainViewModel(ILogger<MainViewModel> logger)
     {
@@ -38,6 +38,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void LogTrace()
     {
+        Log.Trace("Trace: Button test {Time}", DateTime.Now.ToString("HH:mm:ss.fff"));
         _logger.LogTrace("Trace: Button test {Time}", DateTime.Now.ToString("HH:mm:ss.fff"));
     }
 

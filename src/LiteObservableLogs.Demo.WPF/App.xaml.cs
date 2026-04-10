@@ -1,5 +1,4 @@
-﻿using LiteObservableLogs.Demo.WPF.ViewModels;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.IO;
