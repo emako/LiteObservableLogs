@@ -41,7 +41,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void LogDebug()
     {
-        Log.Debug($"Debug: Button test");
+        Write();
+
+        static void Write()
+        {
+            Log.Debug($"Debug: Button test");
+        }
     }
 
     [RelayCommand]
