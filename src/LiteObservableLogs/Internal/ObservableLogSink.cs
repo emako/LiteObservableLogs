@@ -24,14 +24,14 @@ internal sealed class ObservableLogSink : IDisposable
     /// <summary>
     /// Determines whether an incoming level should be accepted.
     /// </summary>
-    public bool IsEnabled(LogLevel level)
+    public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel level)
     {
         if (_disposed || _options.LoggerType == LoggerType.Silent)
         {
             return false;
         }
 
-        return level != LogLevel.None && level >= _options.MinLevel;
+        return level != Microsoft.Extensions.Logging.LogLevel.None && level >= _options.MinLevel;
     }
 
     /// <summary>
@@ -39,7 +39,7 @@ internal sealed class ObservableLogSink : IDisposable
     /// </summary>
     public void Write(
         string category,
-        LogLevel level,
+        Microsoft.Extensions.Logging.LogLevel level,
         EventId eventId,
         string message,
         Exception? exception,
@@ -54,13 +54,13 @@ internal sealed class ObservableLogSink : IDisposable
         CallerInfo? resolvedCaller = _options.IncludeCallerInfo ? caller ?? CallerInfoResolver.Resolve() : null;
         // Capture timestamp once so formatted message and file writer stay aligned.
         LogEntry entry = new(
-            DateTimeOffset.Now,
+            _options.TimestampProvider(),
             level,
             category,
             eventId,
             message,
             exception,
-            scopes ?? [],
+            scopes ?? Array.Empty<string>(),
             resolvedCaller);
 
         string fileRendered = _formatter.FormatFile(entry);

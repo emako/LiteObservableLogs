@@ -63,35 +63,26 @@ internal sealed class LogContext
                 return string.IsNullOrWhiteSpace(format)
                     ? Timestamp.ToString("O", CultureInfo.InvariantCulture)
                     : Timestamp.ToString(format, CultureInfo.InvariantCulture);
-
             case "Level":
                 return RenderLevel(format);
-
             case "Message":
                 return Message;
-
             case "Exception":
                 return Exception?.ToString() ?? string.Empty;
-
             case "NewLine":
                 return Environment.NewLine;
-
             case "SourceContext":
                 return SourceContext;
-
             case "EventId":
                 return EventId.Id == 0 && string.IsNullOrWhiteSpace(EventId.Name)
                     ? string.Empty
                     : string.IsNullOrWhiteSpace(EventId.Name)
                         ? EventId.Id.ToString(CultureInfo.InvariantCulture)
                         : $"{EventId.Id}:{EventId.Name}";
-
             case "Scopes":
                 return string.Join(" => ", Scopes);
-
             case "Caller":
                 return Caller?.Render() ?? string.Empty;
-
             default:
                 return string.Empty;
         }
@@ -119,7 +110,7 @@ internal sealed class LogContext
         {
             return Level switch
             {
-                LogLevel.Trace => "TRC",
+                LogLevel.Trace => "VRB",
                 LogLevel.Debug => "DBG",
                 LogLevel.Information => "INF",
                 LogLevel.Warning => "WRN",
@@ -133,7 +124,7 @@ internal sealed class LogContext
         {
             return Level switch
             {
-                LogLevel.Trace => "trc",
+                LogLevel.Trace => "vrb",
                 LogLevel.Debug => "dbg",
                 LogLevel.Information => "inf",
                 LogLevel.Warning => "wrn",

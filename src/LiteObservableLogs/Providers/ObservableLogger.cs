@@ -45,13 +45,8 @@ public sealed class ObservableLogger : ILogger
     /// <summary>
     /// Checks whether a level is currently enabled for this sink.
     /// </summary>
-    public bool IsEnabled(LogLevel logLevel)
+    public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel logLevel)
     {
-        if (!Enum.IsDefined(typeof(LogLevel), logLevel))
-        {
-            throw new System.ComponentModel.InvalidEnumArgumentException(nameof(logLevel), (int)logLevel, typeof(LogLevel));
-        }
-
         return _sink.IsEnabled(logLevel);
     }
 
@@ -59,7 +54,7 @@ public sealed class ObservableLogger : ILogger
     /// Formats incoming state and forwards a structured entry to the sink.
     /// </summary>
     public void Log<TState>(
-        LogLevel logLevel,
+        Microsoft.Extensions.Logging.LogLevel logLevel,
         EventId eventId,
         TState state,
         Exception? exception,
@@ -74,7 +69,7 @@ public sealed class ObservableLogger : ILogger
             ? state?.ToString() ?? string.Empty
             : formatter(state, exception);
 
-        List<string> scopes = [];
+        List<string> scopes = new();
         if (_includeScopes)
         {
             // Snapshot scopes now to keep asynchronous dispatch independent of ambient context.

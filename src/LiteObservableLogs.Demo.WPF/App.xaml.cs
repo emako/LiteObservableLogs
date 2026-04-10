@@ -19,7 +19,7 @@ public partial class App : Application
         {
             string logFolder = Path.Combine(AppContext.BaseDirectory, "log");
             Directory.CreateDirectory(logFolder);
-            string logFile = Path.Combine(logFolder, "observable_{Timestamp:yyyyMMdd}.log");
+            string logFile = Path.Combine(logFolder, "observable_{Timestamp:yyyyMMdd}_{Count:D5}.log");
 
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.File(logFile,

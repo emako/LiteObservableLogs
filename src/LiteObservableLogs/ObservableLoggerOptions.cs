@@ -1,6 +1,6 @@
-using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
+using Microsoft.Extensions.Logging;
 
 namespace LiteObservableLogs;
 
@@ -24,6 +24,11 @@ public sealed class ObservableLoggerOptions
     /// When set, it takes precedence over <see cref="FileName"/>.
     /// </summary>
     public string? FileNameTemplate { get; set; }
+
+    /// <summary>
+    /// Gets or sets file rolling cadence for file-name templates.
+    /// </summary>
+    public RollingInterval RollingInterval { get; set; } = RollingInterval.Infinite;
 
     /// <summary>
     /// Gets or sets the fallback category name used when no category is provided.
@@ -96,6 +101,11 @@ public sealed class ObservableLoggerOptions
     public TimeSpan? RetainedFileTimeLimit { get; set; }
 
     /// <summary>
+    /// Gets or sets the timestamp factory used when creating log entries.
+    /// </summary>
+    public Func<DateTimeOffset> TimestampProvider { get; set; } = static () => DateTimeOffset.Now;
+
+    /// <summary>
     /// Creates a detached copy so runtime components cannot mutate caller-owned options.
     /// </summary>
     public ObservableLoggerOptions Clone()
@@ -105,6 +115,7 @@ public sealed class ObservableLoggerOptions
             LogFolder = LogFolder,
             FileName = FileName,
             FileNameTemplate = FileNameTemplate,
+            RollingInterval = RollingInterval,
             DefaultCategoryName = DefaultCategoryName,
             MinLevel = MinLevel,
             LoggerType = LoggerType,
@@ -119,6 +130,7 @@ public sealed class ObservableLoggerOptions
             EventOutputTemplate = EventOutputTemplate,
             RetainedFileCountLimit = RetainedFileCountLimit,
             RetainedFileTimeLimit = RetainedFileTimeLimit,
+            TimestampProvider = TimestampProvider,
         };
     }
 }

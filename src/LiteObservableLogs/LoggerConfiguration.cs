@@ -207,6 +207,7 @@ public sealed class LoggerConfiguration
             ? AppContext.BaseDirectory
             : folder!;
         _options.FileNameTemplate = fileName;
+        _options.RollingInterval = rollingInterval;
         _options.FileName = null;
         _options.FileOutputTemplate = outputTemplate;
         _options.RetainedFileCountLimit = retainedFileCountLimit;
@@ -300,6 +301,11 @@ public sealed class LoggerConfiguration
         }
 
         public LoggerConfiguration Verbose()
+        {
+            return _owner.UseLevel(LogLevel.Trace);
+        }
+
+        public LoggerConfiguration Trace()
         {
             return _owner.UseLevel(LogLevel.Trace);
         }

@@ -187,6 +187,116 @@ public sealed class LiteObservableLogsTests
         Assert.Equal("EVENT|INF|ConsoleEventCategory|hello", received!.RenderedText);
     }
 
+    /// <summary>
+    /// Verifies minute rolling creates new files and increments {Count} with numeric formatting.
+    /// </summary>
+    [Fact]
+    public void MinuteRollingCreatesNewFileAndIncrementsCount()
+    {
+        using TempDirectory temp = new();
+        StepClock clock = new(
+            new DateTimeOffset(2026, 4, 10, 9, 0, 5, TimeSpan.Zero),
+            new DateTimeOffset(2026, 4, 10, 9, 0, 30, TimeSpan.Zero),
+            new DateTimeOffset(2026, 4, 10, 9, 1, 2, TimeSpan.Zero));
+
+        using (ObservableLoggerFacade logger = new LoggerConfiguration()
+            .WriteTo.File(
+                Path.Combine(temp.Path, "rolling_{Timestamp:yyyyMMddHHmm}_{Count:D5}.log"),
+                outputTemplate: "{Message}",
+                rollingInterval: RollingInterval.Minute)
+            .UseType(LoggerType.Sync)
+            .UseOptions(options => options.TimestampProvider = clock.Next)
+            .CreateLogger())
+        {
+            logger.Information("A");
+            logger.Information("B");
+            logger.Information("C");
+            logger.Flush();
+        }
+
+        string file1 = Path.Combine(temp.Path, "rolling_202604100900_00001.log");
+        string file2 = Path.Combine(temp.Path, "rolling_202604100901_00002.log");
+        Assert.True(File.Exists(file1));
+        Assert.True(File.Exists(file2));
+        Assert.Contains("A", ReadAllTextShared(file1));
+        Assert.Contains("B", ReadAllTextShared(file1));
+        Assert.Contains("C", ReadAllTextShared(file2));
+    }
+
+    /// <summary>
+    /// Verifies retained file count and age limits both clean up rolled files.
+    /// </summary>
+    [Fact]
+    public void RetentionLimitsApplyToRolledFiles()
+    {
+        using TempDirectory temp = new();
+
+        string stalePath = Path.Combine(temp.Path, "ret_200001010000_00000.log");
+        File.WriteAllText(stalePath, "old");
+        File.SetLastWriteTimeUtc(stalePath, DateTime.UtcNow - TimeSpan.FromDays(30));
+
+        StepClock clock = new(
+            new DateTimeOffset(2026, 4, 10, 9, 0, 1, TimeSpan.Zero),
+            new DateTimeOffset(2026, 4, 10, 9, 1, 1, TimeSpan.Zero),
+            new DateTimeOffset(2026, 4, 10, 9, 2, 1, TimeSpan.Zero),
+            new DateTimeOffset(2026, 4, 10, 9, 3, 1, TimeSpan.Zero));
+
+        using (ObservableLoggerFacade logger = new LoggerConfiguration()
+            .WriteTo.File(
+                Path.Combine(temp.Path, "ret_{Timestamp:yyyyMMddHHmm}_{Count:D5}.log"),
+                outputTemplate: "{Message}",
+                rollingInterval: RollingInterval.Minute,
+                retainedFileCountLimit: 2,
+                retainedFileTimeLimit: TimeSpan.FromDays(1))
+            .UseType(LoggerType.Sync)
+            .UseOptions(options => options.TimestampProvider = clock.Next)
+            .CreateLogger())
+        {
+            logger.Information("1");
+            logger.Information("2");
+            logger.Information("3");
+            logger.Information("4");
+            logger.Flush();
+        }
+
+        Assert.False(File.Exists(stalePath));
+        string[] files = Directory.GetFiles(temp.Path, "ret_*.log");
+        Assert.Equal(2, files.Length);
+    }
+
+    /// <summary>
+    /// Verifies Level:u3 follows Serilog short-level text.
+    /// </summary>
+    [Fact]
+    public void LevelU3UsesSerilogStyleTokens()
+    {
+        using TempDirectory temp = new();
+        using (ObservableLoggerFacade logger = new LoggerConfiguration()
+            .WriteTo.File(
+                Path.Combine(temp.Path, "u3.log"),
+                outputTemplate: "{Level:u3}|{Message}")
+            .UseType(LoggerType.Sync)
+            .MinimumLevel.Trace()
+            .CreateLogger())
+        {
+            logger.Trace("trace");
+            logger.Debug("debug");
+            logger.Information("info");
+            logger.Warning("warn");
+            logger.Error("error");
+            logger.Critical("critical");
+            logger.Flush();
+        }
+
+        string content = ReadAllTextShared(Path.Combine(temp.Path, "u3.log"));
+        Assert.Contains("VRB|trace", content);
+        Assert.Contains("DBG|debug", content);
+        Assert.Contains("INF|info", content);
+        Assert.Contains("WRN|warn", content);
+        Assert.Contains("ERR|error", content);
+        Assert.Contains("FTL|critical", content);
+    }
+
     private static string WaitForFileContent(string path)
     {
         // Async logging can complete slightly later; poll briefly for stable content.
@@ -234,6 +344,38 @@ public sealed class LiteObservableLogsTests
             {
                 Directory.Delete(Path, true);
             }
+        }
+    }
+
+    /// <summary>
+    /// Deterministic clock used to drive rolling tests without waiting in real time.
+    /// </summary>
+    private sealed class StepClock
+    {
+        private readonly DateTimeOffset[] _values;
+        private int _index;
+
+        public StepClock(params DateTimeOffset[] values)
+        {
+            _values = values;
+            _index = 0;
+        }
+
+        public DateTimeOffset Next()
+        {
+            if (_values.Length == 0)
+            {
+                return DateTimeOffset.Now;
+            }
+
+            if (_index >= _values.Length)
+            {
+                return _values[_values.Length - 1];
+            }
+
+            DateTimeOffset value = _values[_index];
+            _index++;
+            return value;
         }
     }
 }
