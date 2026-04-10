@@ -1,8 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
+using System.Windows.Input;
 
 namespace LiteObservableLogs.Demo.WPF;
 
@@ -28,11 +30,15 @@ public partial class App : Application
                     rollingInterval: RollingInterval.Day,
                     retainedFileCountLimit: 31,
                     retainedFileTimeLimit: TimeSpan.FromDays(21))
-                .WriteTo.Console(outputTemplate:
-                    "[{Timestamp:HH:mm:ss} {Level:u3}] {Message}{NewLine}{Exception}")
+                .WriteTo.Console(
+                    outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message}{NewLine}{Exception}",
+                    target: ConsoleTarget.Debug)
                 .WriteTo.Event(outputTemplate: "[{Timestamp:HH:mm:ss.fff}] [{Level:u3}] {SourceContext}{NewLine}{Message}{NewLine}{Exception}{NewLine}")
                 .MinimumLevel.Debug()
                 .CreateLogger();
+
+            Console.WriteLine();
+            Console.Error.WriteLine();
 
             services.AddLogging(c => c.AddSerilog());
             services.AddSingleton<MainViewModel>();

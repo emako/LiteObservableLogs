@@ -4,5 +4,4 @@ public enum ConsoleTarget
 {
     Console,
     Debug,
-    Error,
 }

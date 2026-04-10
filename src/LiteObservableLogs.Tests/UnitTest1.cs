@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using LiteObservableLogs.Providers;
 using Microsoft.Extensions.Logging;
@@ -185,6 +186,34 @@ public sealed class LiteObservableLogsTests
         Assert.Contains("CONSOLE|INF|ConsoleEventCategory|hello", consoleText);
         Assert.NotNull(received);
         Assert.Equal("EVENT|INF|ConsoleEventCategory|hello", received!.RenderedText);
+    }
+
+    /// <summary>
+    /// Verifies ConsoleTarget.Debug routes output to <see cref="Debug.WriteLine(string?)"/>.
+    /// </summary>
+    [Fact]
+    public void ConsoleTargetDebugWritesToDebugListener()
+    {
+        using CapturingTraceListener listener = new();
+        TraceListenerCollection listeners = Trace.Listeners;
+        listeners.Add(listener);
+        try
+        {
+            using ObservableLoggerFacade logger = new LoggerConfiguration()
+                .WriteTo.Console("DBG|{Level:u3}|{Message}", target: ConsoleTarget.Debug)
+                .UseType(LoggerType.Sync)
+                .MinimumLevel.Information()
+                .CreateLogger();
+
+            logger.Information("hello");
+            logger.Flush();
+        }
+        finally
+        {
+            listeners.Remove(listener);
+        }
+
+        Assert.Contains("DBG|INF|hello", listener.ToString());
     }
 
     /// <summary>
@@ -376,6 +405,36 @@ public sealed class LiteObservableLogsTests
             DateTimeOffset value = _values[_index];
             _index++;
             return value;
+        }
+    }
+
+    private sealed class CapturingTraceListener : TraceListener
+    {
+        private readonly StringWriter _buffer = new();
+
+        public override void Write(string? message)
+        {
+            _buffer.Write(message);
+        }
+
+        public override void WriteLine(string? message)
+        {
+            _buffer.WriteLine(message);
+        }
+
+        public override string ToString()
+        {
+            return _buffer.ToString();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _buffer.Dispose();
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

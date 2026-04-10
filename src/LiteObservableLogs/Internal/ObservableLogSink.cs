@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 
 namespace LiteObservableLogs.Internal;
@@ -116,7 +117,14 @@ internal sealed class ObservableLogSink : IDisposable
             return;
         }
 
-        Console.WriteLine(_formatter.FormatConsole(entry));
+        string rendered = _formatter.FormatConsole(entry);
+        if (_options.ConsoleTarget == ConsoleTarget.Debug)
+        {
+            Debug.WriteLine(rendered);
+            return;
+        }
+
+        Console.WriteLine(rendered);
     }
 
     private void PublishEvent(LogEntry entry)

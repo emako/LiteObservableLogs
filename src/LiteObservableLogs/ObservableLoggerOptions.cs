@@ -71,6 +71,11 @@ public sealed class ObservableLoggerOptions
     public bool WriteToConsole { get; set; }
 
     /// <summary>
+    /// Gets or sets which output stream is used when <see cref="WriteToConsole"/> is enabled.
+    /// </summary>
+    public ConsoleTarget ConsoleTarget { get; set; } = default;
+
+    /// <summary>
     /// Gets or sets the template used for file output.
     /// </summary>
     public string? FileOutputTemplate { get; set; }
@@ -124,6 +129,7 @@ public sealed class ObservableLoggerOptions
             IncludeCategory = IncludeCategory,
             IncludeEventId = IncludeEventId,
             WriteToConsole = WriteToConsole,
+            ConsoleTarget = ConsoleTarget,
             FileOutputTemplate = FileOutputTemplate,
             ConsoleOutputTemplate = ConsoleOutputTemplate,
             PublishToEvent = PublishToEvent,

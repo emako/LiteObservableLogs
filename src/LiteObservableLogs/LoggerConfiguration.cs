@@ -222,9 +222,10 @@ public sealed class LoggerConfiguration
         return this;
     }
 
-    internal LoggerConfiguration EnableConsoleCompatibility(string? outputTemplate)
+    internal LoggerConfiguration EnableConsoleCompatibility(string? outputTemplate, ConsoleTarget target = ConsoleTarget.Console)
     {
         _options.WriteToConsole = true;
+        _options.ConsoleTarget = target;
         _options.ConsoleOutputTemplate = outputTemplate;
         return this;
     }
@@ -277,9 +278,9 @@ public sealed class LoggerConfiguration
             return _owner.SetWriteToFileCompatibility(path, outputTemplate, rollingInterval, retainedFileCountLimit, retainedFileTimeLimit);
         }
 
-        public LoggerConfiguration Console(string? outputTemplate = null)
+        public LoggerConfiguration Console(string? outputTemplate = null, ConsoleTarget target = ConsoleTarget.Console)
         {
-            return _owner.EnableConsoleCompatibility(outputTemplate);
+            return _owner.EnableConsoleCompatibility(outputTemplate, target);
         }
 
         public LoggerConfiguration Event(string? outputTemplate = null)
