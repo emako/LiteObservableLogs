@@ -28,6 +28,8 @@ internal sealed class LogContext(LogEntry entry)
 
     public CallerInfo? Caller { get; } = entry.Caller;
 
+    public int? ThreadId { get; } = entry.Caller?.ThreadId;
+
     public IReadOnlyList<string> Scopes { get; } = entry.Scopes;
 
     public string Render(string template)
@@ -81,6 +83,13 @@ internal sealed class LogContext(LogEntry entry)
 
             case "Caller":
                 return Caller?.Render() ?? string.Empty;
+
+            case "ThreadId":
+                return ThreadId.HasValue
+                    ? (string.IsNullOrWhiteSpace(format)
+                        ? ThreadId.Value.ToString(CultureInfo.InvariantCulture)
+                        : ThreadId.Value.ToString(format, CultureInfo.InvariantCulture))
+                    : string.Empty;
 
             case "UserName":
                 return HostUserName;

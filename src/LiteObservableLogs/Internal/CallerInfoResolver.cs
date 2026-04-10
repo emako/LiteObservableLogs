@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 
 namespace LiteObservableLogs.Internal;
 
@@ -9,10 +10,11 @@ internal static class CallerInfoResolver
 {
     public static CallerInfo Resolve()
     {
+        int threadId = Thread.CurrentThread.ManagedThreadId;
         StackFrame[]? frames = new StackTrace(true).GetFrames();
         if (frames == null || frames.Length == 0)
         {
-            return new CallerInfo(null, null, 0);
+            return new CallerInfo(null, null, 0, threadId);
         }
 
         foreach (StackFrame frame in frames)
@@ -41,9 +43,10 @@ internal static class CallerInfoResolver
             return new CallerInfo(
                 fileName == null ? declaringType?.Name : Path.GetFileName(fileName),
                 method?.Name,
-                frame.GetFileLineNumber());
+                frame.GetFileLineNumber(),
+                threadId);
         }
 
-        return new CallerInfo(null, null, 0);
+        return new CallerInfo(null, null, 0, threadId);
     }
 }
