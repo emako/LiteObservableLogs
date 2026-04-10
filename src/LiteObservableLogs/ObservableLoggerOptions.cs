@@ -43,7 +43,7 @@ public sealed class ObservableLoggerOptions
     /// <summary>
     /// Gets or sets how entries are dispatched to disk.
     /// </summary>
-    public LoggerType LoggerType { get; set; } = LoggerType.Async;
+    public LogDispatchBehavior LoggerType { get; set; } = LogDispatchBehavior.Async;
 
     /// <summary>
     /// Gets or sets whether active logging scopes should be rendered.

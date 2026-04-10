@@ -12,7 +12,7 @@ public sealed class LoggerConfiguration
     private readonly ObservableLoggerOptions _options = new();
     private readonly WriteToConfiguration _writeTo;
     private readonly MinimumLevelConfiguration _minimumLevel;
-    private readonly LoggerTypeConfiguration _loggerType;
+    private readonly LogDispatchBehaviorConfiguration _logDispatchBehavior;
     private bool _loggerCreated;
 
     /// <summary>
@@ -22,7 +22,7 @@ public sealed class LoggerConfiguration
     {
         _writeTo = new WriteToConfiguration(this);
         _minimumLevel = new MinimumLevelConfiguration(this);
-        _loggerType = new LoggerTypeConfiguration(this);
+        _logDispatchBehavior = new LogDispatchBehaviorConfiguration(this);
     }
 
     /// <summary>
@@ -46,12 +46,12 @@ public sealed class LoggerConfiguration
     /// <summary>
     /// Provides Serilog-style logger type configuration entry.
     /// </summary>
-    public LoggerTypeConfiguration LoggerType => _loggerType;
+    public LogDispatchBehaviorConfiguration LogDispatchBehavior => _logDispatchBehavior;
 
     /// <summary>
     /// Sets how log records are dispatched to storage.
     /// </summary>
-    public LoggerConfiguration UseType(global::LiteObservableLogs.LoggerType type = global::LiteObservableLogs.LoggerType.Async)
+    public LoggerConfiguration UseDispatchBehavior(LogDispatchBehavior type = LiteObservableLogs.LogDispatchBehavior.Async)
     {
         _options.LoggerType = type;
         return this;
@@ -161,7 +161,7 @@ public sealed class LoggerConfiguration
     /// </summary>
     public ObservableLoggerFacade CreateSyncLogger(string? categoryName = null)
     {
-        _options.LoggerType = global::LiteObservableLogs.LoggerType.Sync;
+        _options.LoggerType = LiteObservableLogs.LogDispatchBehavior.Sync;
         return CreateLogger(categoryName ?? _options.DefaultCategoryName);
     }
 
@@ -170,7 +170,7 @@ public sealed class LoggerConfiguration
     /// </summary>
     public ObservableLoggerFacade CreateAsyncLogger(string? categoryName = null)
     {
-        _options.LoggerType = global::LiteObservableLogs.LoggerType.Async;
+        _options.LoggerType = LiteObservableLogs.LogDispatchBehavior.Async;
         return CreateLogger(categoryName ?? _options.DefaultCategoryName);
     }
 
@@ -358,28 +358,28 @@ public sealed class LoggerConfiguration
     /// <summary>
     /// Serilog-style logger dispatch type configuration wrapper.
     /// </summary>
-    public sealed class LoggerTypeConfiguration
+    public sealed class LogDispatchBehaviorConfiguration
     {
         private readonly LoggerConfiguration _owner;
 
-        internal LoggerTypeConfiguration(LoggerConfiguration owner)
+        internal LogDispatchBehaviorConfiguration(LoggerConfiguration owner)
         {
             _owner = owner;
         }
 
         public LoggerConfiguration Sync()
         {
-            return _owner.UseType(global::LiteObservableLogs.LoggerType.Sync);
+            return _owner.UseDispatchBehavior(LiteObservableLogs.LogDispatchBehavior.Sync);
         }
 
         public LoggerConfiguration Async()
         {
-            return _owner.UseType(global::LiteObservableLogs.LoggerType.Async);
+            return _owner.UseDispatchBehavior(LiteObservableLogs.LogDispatchBehavior.Async);
         }
 
         public LoggerConfiguration Silent()
         {
-            return _owner.UseType(global::LiteObservableLogs.LoggerType.Silent);
+            return _owner.UseDispatchBehavior(LiteObservableLogs.LogDispatchBehavior.Silent);
         }
     }
 }

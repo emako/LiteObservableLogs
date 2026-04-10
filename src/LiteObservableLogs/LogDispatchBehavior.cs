@@ -3,7 +3,7 @@ namespace LiteObservableLogs;
 /// <summary>
 /// Specifies dispatch behavior for log writing.
 /// </summary>
-public enum LoggerType
+public enum LogDispatchBehavior
 {
     /// <summary>
     /// Drops all entries.

@@ -25,14 +25,14 @@ internal sealed class ObservableLogSink : IDisposable
     /// <summary>
     /// Determines whether an incoming level should be accepted.
     /// </summary>
-    public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel level)
+    public bool IsEnabled(LogLevel level)
     {
-        if (_disposed || _options.LoggerType == LoggerType.Silent)
+        if (_disposed || _options.LoggerType == LogDispatchBehavior.Silent)
         {
             return false;
         }
 
-        return level != Microsoft.Extensions.Logging.LogLevel.None && level >= _options.MinLevel;
+        return level != LogLevel.None && level >= _options.MinLevel;
     }
 
     /// <summary>
@@ -66,7 +66,7 @@ internal sealed class ObservableLogSink : IDisposable
 
         string fileRendered = _formatter.FormatFile(entry);
         _dispatcher.Enqueue(entry, fileRendered);
-        if (_options.LoggerType != LoggerType.Async)
+        if (_options.LoggerType != LogDispatchBehavior.Async)
         {
             WriteConsole(entry);
             PublishEvent(entry);
@@ -102,13 +102,13 @@ internal sealed class ObservableLogSink : IDisposable
 
     private IObservableLogDispatcher CreateDispatcher()
     {
-        if (_options.LoggerType == LoggerType.Silent)
+        if (_options.LoggerType == LogDispatchBehavior.Silent)
         {
             return new NoneLogDispatcher();
         }
 
         ObservableFileWriter writer = new(_options);
-        return _options.LoggerType == LoggerType.Sync
+        return _options.LoggerType == LogDispatchBehavior.Sync
             ? new SyncLogDispatcher(writer)
             : new AsyncLogDispatcher(writer, DispatchSecondaryTargets);
     }

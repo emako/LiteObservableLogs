@@ -20,7 +20,7 @@ public sealed class LiteObservableLogsTests
         using TempDirectory temp = new();
         using (ObservableLoggerFacade logger = LoggerConfiguration.CreateDefault()
             .WriteToFile(temp.Path, "sync.log")
-            .UseType(LoggerType.Sync)
+            .UseDispatchBehavior(LogDispatchBehavior.Sync)
             .UseLevel(LogLevel.Information)
             .UseCategory("SyncCategory")
             .CreateLogger())
@@ -48,7 +48,7 @@ public sealed class LiteObservableLogsTests
         string filePath = Path.Combine(temp.Path, "immediate.log");
         using ObservableLoggerFacade logger = LoggerConfiguration.CreateDefault()
             .WriteToFile(temp.Path, "immediate.log")
-            .LoggerType.Sync()
+            .LogDispatchBehavior.Sync()
             .UseLevel(LogLevel.Information)
             .CreateLogger();
 
@@ -69,7 +69,7 @@ public sealed class LiteObservableLogsTests
         {
             LogFolder = temp.Path,
             FileName = "scope.log",
-            LoggerType = LoggerType.Sync,
+            LoggerType = LogDispatchBehavior.Sync,
             IncludeScopes = true,
         }))
         using (ILoggerFactory factory = LoggerFactory.Create(builder => builder.AddProvider(provider)))
@@ -98,7 +98,7 @@ public sealed class LiteObservableLogsTests
         using TempDirectory temp = new();
         Log.Logger = LoggerConfiguration.CreateDefault()
             .WriteToFile(temp.Path, "static.log")
-            .UseType(LoggerType.Async)
+            .UseDispatchBehavior(LogDispatchBehavior.Async)
             .UseLevel(LogLevel.Trace)
             .UseCategory("StaticCategory")
             .CreateLogger();
@@ -126,7 +126,7 @@ public sealed class LiteObservableLogsTests
         using TempDirectory temp = new();
         using (ObservableLoggerFacade logger = LoggerConfiguration.CreateDefault()
             .WriteToFile(temp.Path, "exception.log")
-            .UseType(LoggerType.Sync)
+            .UseDispatchBehavior(LogDispatchBehavior.Sync)
             .UseCategory("ExceptionCategory")
             .CreateLogger())
         {
@@ -153,7 +153,7 @@ public sealed class LiteObservableLogsTests
             .WriteTo.File(
                 Path.Combine(temp.Path, "templated.log"),
                 outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss}] [{Level:u3}] {SourceContext}{NewLine}{Message}{NewLine}{Exception}")
-            .UseType(LoggerType.Sync)
+            .UseDispatchBehavior(LogDispatchBehavior.Sync)
             .UseCategory("TemplateCategory")
             .MinimumLevel.Debug()
             .CreateLogger())
@@ -188,7 +188,7 @@ public sealed class LiteObservableLogsTests
             using ObservableLoggerFacade logger = new LoggerConfiguration()
                 .WriteTo.Console("CONSOLE|{Level:u3}|{SourceContext}|{Message}")
                 .WriteTo.Event("EVENT|{Level:u3}|{SourceContext}|{Message}")
-                .UseType(LoggerType.Sync)
+                .UseDispatchBehavior(LogDispatchBehavior.Sync)
                 .UseCategory("ConsoleEventCategory")
                 .MinimumLevel.Information()
                 .CreateLogger();
@@ -230,7 +230,7 @@ public sealed class LiteObservableLogsTests
                 .WriteTo.File(Path.Combine(temp.Path, "global.log"))
                 .WriteTo.Console()
                 .WriteTo.Event()
-                .LoggerType.Sync()
+                .LogDispatchBehavior.Sync()
                 .MinimumLevel.Information()
                 .CreateLogger();
 
@@ -263,7 +263,7 @@ public sealed class LiteObservableLogsTests
         {
             using ObservableLoggerFacade logger = new LoggerConfiguration()
                 .WriteTo.Console("DBG|{Level:u3}|{Message}", target: ConsoleTarget.Debug)
-                .UseType(LoggerType.Sync)
+                .UseDispatchBehavior(LogDispatchBehavior.Sync)
                 .MinimumLevel.Information()
                 .CreateLogger();
 
@@ -297,7 +297,7 @@ public sealed class LiteObservableLogsTests
             using ObservableLoggerFacade logger = new LoggerConfiguration()
                 .WriteTo.Console("ASYNC_CONSOLE|{Message}")
                 .WriteTo.Event("ASYNC_EVENT|{Message}")
-                .LoggerType.Async()
+                .LogDispatchBehavior.Async()
                 .MinimumLevel.Information()
                 .CreateLogger();
 
@@ -332,7 +332,7 @@ public sealed class LiteObservableLogsTests
                 Path.Combine(temp.Path, "rolling_{Timestamp:yyyyMMddHHmm}_{Count:D5}.log"),
                 outputTemplate: "{Message}",
                 rollingInterval: RollingInterval.Minute)
-            .UseType(LoggerType.Sync)
+            .UseDispatchBehavior(LogDispatchBehavior.Sync)
             .UseOptions(options => options.TimestampProvider = clock.Next)
             .CreateLogger())
         {
@@ -368,7 +368,7 @@ public sealed class LiteObservableLogsTests
                 Path.Combine(temp.Path, "observable_{Timestamp:yyyyMMdd}_{Count:D5}.log"),
                 outputTemplate: "{Message}",
                 rollingInterval: RollingInterval.Day)
-            .LoggerType.Sync()
+            .LogDispatchBehavior.Sync()
             .UseOptions(options => options.TimestampProvider = static () => new DateTimeOffset(2026, 4, 10, 9, 0, 0, TimeSpan.Zero))
             .CreateLogger())
         {
@@ -404,7 +404,7 @@ public sealed class LiteObservableLogsTests
                 rollingInterval: RollingInterval.Minute,
                 retainedFileCountLimit: 2,
                 retainedFileTimeLimit: TimeSpan.FromDays(1))
-            .UseType(LoggerType.Sync)
+            .UseDispatchBehavior(LogDispatchBehavior.Sync)
             .UseOptions(options => options.TimestampProvider = clock.Next)
             .CreateLogger())
         {
@@ -431,7 +431,7 @@ public sealed class LiteObservableLogsTests
             .WriteTo.File(
                 Path.Combine(temp.Path, "u3.log"),
                 outputTemplate: "{Level:u3}|{Message}")
-            .UseType(LoggerType.Sync)
+            .UseDispatchBehavior(LogDispatchBehavior.Sync)
             .MinimumLevel.Trace()
             .CreateLogger())
         {

@@ -29,7 +29,7 @@ public partial class App : Application
                 .WriteTo.Console(target: ConsoleTarget.Debug)
                 .WriteTo.Event()
                 .WriteTo.Option(outputTemplate: "{Timestamp:yyyy.MM.dd HH:mm:ss.fff}|{UserName}|{Level:u5}|{SourceContext}|{Message}{Exception}")
-                .LoggerType.Async()
+                .LogDispatchBehavior.Async()
                 .MinimumLevel.Debug()
                 .CreateLogger();
 
