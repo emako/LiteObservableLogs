@@ -12,6 +12,7 @@ public sealed class LoggerConfiguration
     private readonly ObservableLoggerOptions _options = new();
     private readonly WriteToConfiguration _writeTo;
     private readonly MinimumLevelConfiguration _minimumLevel;
+    private readonly LoggerTypeConfiguration _loggerType;
     private bool _loggerCreated;
 
     /// <summary>
@@ -21,6 +22,7 @@ public sealed class LoggerConfiguration
     {
         _writeTo = new WriteToConfiguration(this);
         _minimumLevel = new MinimumLevelConfiguration(this);
+        _loggerType = new LoggerTypeConfiguration(this);
     }
 
     /// <summary>
@@ -42,9 +44,14 @@ public sealed class LoggerConfiguration
     public MinimumLevelConfiguration MinimumLevel => _minimumLevel;
 
     /// <summary>
+    /// Provides Serilog-style logger type configuration entry.
+    /// </summary>
+    public LoggerTypeConfiguration LoggerType => _loggerType;
+
+    /// <summary>
     /// Sets how log records are dispatched to storage.
     /// </summary>
-    public LoggerConfiguration UseType(LoggerType type = LoggerType.Async)
+    public LoggerConfiguration UseType(global::LiteObservableLogs.LoggerType type = global::LiteObservableLogs.LoggerType.Async)
     {
         _options.LoggerType = type;
         return this;
@@ -154,7 +161,7 @@ public sealed class LoggerConfiguration
     /// </summary>
     public ObservableLoggerFacade CreateSyncLogger(string? categoryName = null)
     {
-        _options.LoggerType = LoggerType.Sync;
+        _options.LoggerType = global::LiteObservableLogs.LoggerType.Sync;
         return CreateLogger(categoryName ?? _options.DefaultCategoryName);
     }
 
@@ -163,7 +170,7 @@ public sealed class LoggerConfiguration
     /// </summary>
     public ObservableLoggerFacade CreateAsyncLogger(string? categoryName = null)
     {
-        _options.LoggerType = LoggerType.Async;
+        _options.LoggerType = global::LiteObservableLogs.LoggerType.Async;
         return CreateLogger(categoryName ?? _options.DefaultCategoryName);
     }
 
@@ -334,6 +341,34 @@ public sealed class LoggerConfiguration
         public LoggerConfiguration Fatal()
         {
             return _owner.UseLevel(LogLevel.Critical);
+        }
+    }
+
+    /// <summary>
+    /// Serilog-style logger dispatch type configuration wrapper.
+    /// </summary>
+    public sealed class LoggerTypeConfiguration
+    {
+        private readonly LoggerConfiguration _owner;
+
+        internal LoggerTypeConfiguration(LoggerConfiguration owner)
+        {
+            _owner = owner;
+        }
+
+        public LoggerConfiguration Sync()
+        {
+            return _owner.UseType(LiteObservableLogs.LoggerType.Sync);
+        }
+
+        public LoggerConfiguration Async()
+        {
+            return _owner.UseType(LiteObservableLogs.LoggerType.Async);
+        }
+
+        public LoggerConfiguration Silent()
+        {
+            return _owner.UseType(LiteObservableLogs.LoggerType.Silent);
         }
     }
 }

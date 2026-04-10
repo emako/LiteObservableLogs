@@ -39,6 +39,26 @@ public sealed class LiteObservableLogsTests
     }
 
     /// <summary>
+    /// Verifies sync mode persists each write without requiring explicit Flush/Dispose first.
+    /// </summary>
+    [Fact]
+    public void SyncFacadePersistsImmediatelyWithoutManualFlush()
+    {
+        using TempDirectory temp = new();
+        string filePath = Path.Combine(temp.Path, "immediate.log");
+        using ObservableLoggerFacade logger = LoggerConfiguration.CreateDefault()
+            .WriteToFile(temp.Path, "immediate.log")
+            .LoggerType.Sync()
+            .UseLevel(LogLevel.Information)
+            .CreateLogger();
+
+        logger.Information("visible-now");
+
+        string content = ReadAllTextShared(filePath);
+        Assert.Contains("visible-now", content);
+    }
+
+    /// <summary>
     /// Verifies scope and category fields are included in provider-based logging.
     /// </summary>
     [Fact]

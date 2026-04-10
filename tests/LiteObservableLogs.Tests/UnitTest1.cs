@@ -14,7 +14,7 @@ public sealed class LiteObservableLogsTests
         using TempDirectory temp = new();
         using (ObservableLoggerFacade logger = LoggerConfiguration.CreateDefault()
             .WriteToFile(temp.Path, "sync.log")
-            .UseType(LoggerType.Sync)
+            .LoggerType.Sync()
             .UseLevel(LiteLogLevel.Information)
             .UseCategory("SyncCategory")
             .CreateLogger())
@@ -65,7 +65,7 @@ public sealed class LiteObservableLogsTests
         using TempDirectory temp = new();
         Log.Logger = LoggerConfiguration.CreateDefault()
             .WriteToFile(temp.Path, "static.log")
-            .UseType(LoggerType.Async)
+            .LoggerType.Async()
             .UseLevel(LiteLogLevel.Trace)
             .UseCategory("StaticCategory")
             .CreateLogger();
@@ -89,7 +89,7 @@ public sealed class LiteObservableLogsTests
         using TempDirectory temp = new();
         using (ObservableLoggerFacade logger = LoggerConfiguration.CreateDefault()
             .WriteToFile(temp.Path, "exception.log")
-            .UseType(LoggerType.Sync)
+            .LoggerType.Sync()
             .UseCategory("ExceptionCategory")
             .CreateLogger())
         {
@@ -150,3 +150,4 @@ public sealed class LiteObservableLogsTests
         }
     }
 }
+

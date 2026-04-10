@@ -12,6 +12,8 @@ internal sealed class SyncLogDispatcher : IObservableLogDispatcher
     public void Enqueue(LogEntry entry, string formattedMessage)
     {
         _writer.WriteLine(entry.Timestamp, formattedMessage);
+        // Sync mode guarantees visibility as soon as the call returns.
+        _writer.Flush();
     }
 
     public void Flush()
