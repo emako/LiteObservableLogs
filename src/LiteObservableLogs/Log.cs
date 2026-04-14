@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading;
 
 namespace LiteObservableLogs;
@@ -123,6 +124,27 @@ public static class Log
     /// </summary>
     internal static void Publish(ObservableLogEvent entry)
     {
-        Received?.Invoke(null, entry);
+        EventHandler<ObservableLogEvent>? handlers = Received;
+        if (handlers == null)
+        {
+            return;
+        }
+
+        // Do not call Received?.Invoke(null, entry) directly:
+        // multicast delegate invocation stops on the first throwing subscriber.
+        // We invoke each handler individually so one faulty listener does not
+        // block other listeners or destabilize the logging pipeline.
+        Delegate[] invocationList = handlers.GetInvocationList();
+        for (int i = 0; i < invocationList.Length; i++)
+        {
+            try
+            {
+                ((EventHandler<ObservableLogEvent>)invocationList[i]).Invoke(null, entry);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[LiteObservableLogs] Log.Received subscriber threw: {ex}");
+            }
+        }
     }
 }
