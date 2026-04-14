@@ -18,6 +18,9 @@ internal sealed class AsyncLogDispatcher : IObservableLogDispatcher
     private readonly ManualResetEventSlim _drainedSignal = new(initialState: true);
     private int _pendingCount;
 
+    /// <inheritdoc />
+    public string? CurrentLogFilePath => _writer.CurrentLogFilePath;
+
     /// <summary>
     /// Starts a long-running worker that drains the queue and writes to <paramref name="writer"/>.
     /// </summary>

@@ -48,6 +48,30 @@ public sealed class ObservableLoggerFacade : IDisposable
     internal ObservableLoggerOptions? OptionsSnapshot => _optionsSnapshot?.Clone();
 
     /// <summary>
+    /// Gets the configured log folder for this logger instance.
+    /// </summary>
+    public string? LogFolder
+    {
+        get
+        {
+            ThrowIfDisposed();
+            return _provider?.LogFolder ?? _optionsSnapshot?.LogFolder;
+        }
+    }
+
+    /// <summary>
+    /// Gets the current active log file path, or <c>null</c> before the first write.
+    /// </summary>
+    public string? CurrentLogFilePath
+    {
+        get
+        {
+            ThrowIfDisposed();
+            return _provider?.CurrentLogFilePath;
+        }
+    }
+
+    /// <summary>
     /// Emits no output. Kept for level API parity.
     /// </summary>
     public void None(params object[] values)

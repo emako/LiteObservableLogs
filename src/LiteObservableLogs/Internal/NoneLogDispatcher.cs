@@ -15,6 +15,9 @@ internal sealed class NoneLogDispatcher : IObservableLogDispatcher
     }
 
     /// <inheritdoc />
+    public string? CurrentLogFilePath => null;
+
+    /// <inheritdoc />
     public void Flush()
     {
     }

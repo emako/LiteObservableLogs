@@ -453,6 +453,29 @@ public sealed class LiteObservableLogsTests
         Assert.Contains("FTL|critical", content);
     }
 
+    /// <summary>
+    /// Verifies facade exposes configured log folder and current file path after first write.
+    /// </summary>
+    [Fact]
+    public void FacadeExposesLogFolderAndCurrentFilePath()
+    {
+        using TempDirectory temp = new();
+        string filePath = Path.Combine(temp.Path, "meta.log");
+        using ObservableLoggerFacade logger = new LoggerConfiguration()
+            .WriteTo.File(filePath)
+            .UseDispatchBehavior(LogDispatchBehavior.Sync)
+            .MinimumLevel.Information()
+            .CreateLogger();
+
+        Assert.Equal(Path.GetFullPath(temp.Path), Path.GetFullPath(logger.LogFolder!));
+        Assert.Null(logger.CurrentLogFilePath);
+
+        logger.Information("meta");
+        logger.Flush();
+
+        Assert.Equal(Path.GetFullPath(filePath), Path.GetFullPath(logger.CurrentLogFilePath!));
+    }
+
     private static string WaitForFileContent(string path)
     {
         // Async logging can complete slightly later; poll briefly for stable content.

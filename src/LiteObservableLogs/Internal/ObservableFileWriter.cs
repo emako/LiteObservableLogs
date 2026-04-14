@@ -36,6 +36,20 @@ internal sealed class ObservableFileWriter : IDisposable
     }
 
     /// <summary>
+    /// Gets the active file path currently opened by the writer, or <c>null</c> before the first write.
+    /// </summary>
+    public string? CurrentLogFilePath
+    {
+        get
+        {
+            lock (_syncRoot)
+            {
+                return _currentFilePath;
+            }
+        }
+    }
+
+    /// <summary>
     /// Appends one formatted message line to the active output file.
     /// </summary>
     public void WriteLine(DateTimeOffset timestamp, string message)

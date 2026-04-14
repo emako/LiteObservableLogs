@@ -22,6 +22,12 @@ internal sealed class ObservableLogSink : IDisposable
         _dispatcher = CreateDispatcher();
     }
 
+    /// <summary>Gets the configured log folder.</summary>
+    public string LogFolder => _options.LogFolder;
+
+    /// <summary>Gets the current active log file path, or <c>null</c> before first write.</summary>
+    public string? CurrentLogFilePath => _dispatcher.CurrentLogFilePath;
+
     /// <summary>
     /// Determines whether an incoming level should be accepted.
     /// </summary>

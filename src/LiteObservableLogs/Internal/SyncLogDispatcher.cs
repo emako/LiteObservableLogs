@@ -15,13 +15,15 @@ internal sealed class SyncLogDispatcher(ObservableFileWriter writer) : IObservab
 
     /// <inheritdoc />
     public void Enqueue(LogEntry entry, string fileMessage, string? consoleMessage, string? eventMessage)
-
     {
         // Console/Event payloads are relevant for async secondary dispatch only.
         _writer.WriteLine(entry.Timestamp, fileMessage);
         // Sync mode guarantees visibility as soon as the call returns.
         _writer.Flush();
     }
+
+    /// <inheritdoc />
+    public string? CurrentLogFilePath => _writer.CurrentLogFilePath;
 
     /// <inheritdoc />
     public void Flush()
