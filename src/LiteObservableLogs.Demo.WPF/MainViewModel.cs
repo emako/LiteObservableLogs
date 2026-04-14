@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
 using System.Windows;
 
@@ -58,6 +59,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void LogWarning()
     {
+        // Record additional properties in the scope; these will be included in the log entry and can be used for filtering and enrichment.
+        using var _ = Log.Logger.InnerLogger.BeginScope("Action={Action};OperationId={OperationId}", "LogWarning", Guid.NewGuid().ToString("N")[..8]);
+
         Log.Warning("Warning: Button test");
     }
 

@@ -88,7 +88,6 @@ internal sealed class LogStringBuilder(LogEntry entry)
                     ? EventId.Id.ToString(CultureInfo.InvariantCulture)
                     : $"{EventId.Id}:{EventId.Name}",
             "Scopes" => string.Join(" => ", Scopes),
-            "Caller" => Caller?.Render() ?? string.Empty,
             "CallerFileName" => Caller?.FileName ?? string.Empty,
             "CallerLineNumber" => Caller?.LineNumber.ToString(CultureInfo.InvariantCulture) ?? string.Empty,
             "CallerMemberName" => Caller?.MemberName ?? string.Empty,
@@ -247,7 +246,7 @@ internal sealed class LogStringBuilder(LogEntry entry)
 
         if (options.IncludeCallerInfo && entry.Caller is CallerInfo caller)
         {
-            sb.Append('|').Append(Sanitize(caller.Render()));
+            sb.Append('|').Append(Sanitize(caller.FileName)).Append(':').Append(Sanitize(caller.LineNumber.ToString())).Append('-').Append(Sanitize(caller.MemberName));
         }
 
         sb.Append('|').Append(Sanitize(entry.Message));

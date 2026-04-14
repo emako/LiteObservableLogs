@@ -6,7 +6,9 @@ namespace LiteObservableLogs.Internal;
 internal sealed class ObservableLogFormatter(ObservableLoggerOptions options)
 {
     private readonly ObservableLoggerOptions _options = options;
-    private readonly bool _usesAnyTemplate = HasTemplate(options.FileOutputTemplate)
+
+    private readonly bool _usesAnyTemplate =
+        HasTemplate(options.FileOutputTemplate)
         || HasTemplate(options.ConsoleOutputTemplate)
         || HasTemplate(options.EventOutputTemplate)
         || HasTemplate(options.OutputTemplate);

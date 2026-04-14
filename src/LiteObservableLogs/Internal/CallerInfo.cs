@@ -3,7 +3,7 @@ namespace LiteObservableLogs.Internal;
 /// <summary>
 /// Caller-site metadata resolved from the stack (or supplied by the sink) for templates and fallback formatting.
 /// </summary>
-internal sealed class CallerInfo(string? fileName, string? memberName, int lineNumber, int threadId)
+internal readonly struct CallerInfo(string? fileName, string? memberName, int lineNumber, int threadId)
 {
     /// <summary>Source file name only (no directory), or a placeholder when PDB line info is unavailable.</summary>
     public string? FileName { get; } = fileName;
@@ -16,12 +16,4 @@ internal sealed class CallerInfo(string? fileName, string? memberName, int lineN
 
     /// <summary>Managed thread ID of the logging call site.</summary>
     public int ThreadId { get; } = threadId;
-
-    /// <summary>
-    /// Returns the compact default representation used by <c>{Caller}</c> and pipe-delimited fallback output.
-    /// </summary>
-    public string Render()
-    {
-        return $"{FileName}:{LineNumber},{MemberName}";
-    }
 }

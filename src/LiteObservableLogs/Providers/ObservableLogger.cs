@@ -41,7 +41,7 @@ public sealed class ObservableLogger : ILogger
             return NoneScope.Instance;
         }
 
-        IExternalScopeProvider? scopeProvider = _scopeProviderAccessor();
+        IExternalScopeProvider? scopeProvider = _scopeProviderAccessor?.Invoke();
         return scopeProvider?.Push(state) ?? NoneScope.Instance;
     }
 
@@ -76,7 +76,7 @@ public sealed class ObservableLogger : ILogger
         if (_includeScopes)
         {
             // Snapshot scopes now to keep asynchronous dispatch independent of ambient context.
-            _scopeProviderAccessor()?.ForEachScope(static (scope, values) =>
+            _scopeProviderAccessor?.Invoke()?.ForEachScope(static (scope, values) =>
             {
                 if (scope != null)
                 {

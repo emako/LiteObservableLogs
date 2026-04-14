@@ -70,21 +70,18 @@ internal sealed class ObservableLogSink : IDisposable
             scopes ?? [],
             resolvedCaller);
 
-        LogStringBuilder? sharedBuilder = _formatter.CreateSharedBuilder(entry);
-        string fileRendered = _formatter.FormatFile(entry, sharedBuilder);
-        string? consoleRendered = _options.WriteToConsole
-            ? _formatter.FormatConsole(entry, sharedBuilder)
-            : null;
-        string? eventRendered = _options.PublishToEvent
-            ? _formatter.FormatEvent(entry, sharedBuilder)
-            : null;
-
-        _dispatcher.Enqueue(entry, fileRendered, consoleRendered, eventRendered);
-        if (_options.LoggerType != LogDispatchBehavior.Async)
+        if (_options.LoggerType == LogDispatchBehavior.Async)
         {
-            WriteConsole(entry, consoleRendered);
-            PublishEvent(entry, eventRendered);
+            // In async mode, keep caller-thread work minimal: only collect snapshot data,
+            // enqueue, and let the background worker perform all formatting/output steps.
+            _dispatcher.Enqueue(entry, string.Empty, null, null);
+            return;
         }
+
+        (string fileRendered, string? consoleRendered, string? eventRendered) = RenderOutputs(entry);
+        _dispatcher.Enqueue(entry, fileRendered, consoleRendered, eventRendered);
+        WriteConsole(entry, consoleRendered);
+        PublishEvent(entry, eventRendered);
     }
 
     /// <summary>
@@ -125,7 +122,21 @@ internal sealed class ObservableLogSink : IDisposable
         ObservableFileWriter writer = new(_options);
         return _options.LoggerType == LogDispatchBehavior.Sync
             ? new SyncLogDispatcher(writer)
-            : new AsyncLogDispatcher(writer, DispatchSecondaryTargets);
+            : new AsyncLogDispatcher(writer, RenderOutputs, DispatchSecondaryTargets);
+    }
+
+    /// <summary>Renders sink outputs for file/console/event with one shared token builder.</summary>
+    private (string FileRendered, string? ConsoleRendered, string? EventRendered) RenderOutputs(LogEntry entry)
+    {
+        LogStringBuilder? sharedBuilder = _formatter.CreateSharedBuilder(entry);
+        string fileRendered = _formatter.FormatFile(entry, sharedBuilder);
+        string? consoleRendered = _options.WriteToConsole
+            ? _formatter.FormatConsole(entry, sharedBuilder)
+            : null;
+        string? eventRendered = _options.PublishToEvent
+            ? _formatter.FormatEvent(entry, sharedBuilder)
+            : null;
+        return (fileRendered, consoleRendered, eventRendered);
     }
 
     /// <summary>Invoked after async file writes to fan out to console and in-process events.</summary>

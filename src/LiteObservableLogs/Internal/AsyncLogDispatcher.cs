@@ -11,9 +11,9 @@ namespace LiteObservableLogs.Internal;
 internal sealed class AsyncLogDispatcher : IObservableLogDispatcher
 {
     private readonly ObservableFileWriter _writer;
+    private readonly Func<LogEntry, (string FileMessage, string? ConsoleMessage, string? EventMessage)> _render;
     private readonly Action<LogEntry, string?, string?>? _afterWrite;
-    private readonly BlockingCollection<(LogEntry Entry, string FileMessage, string? ConsoleMessage, string? EventMessage)> _queue = new(
-        new ConcurrentQueue<(LogEntry, string, string?, string?)>());
+    private readonly BlockingCollection<LogEntry> _queue = new(new ConcurrentQueue<LogEntry>());
     private readonly Task _worker;
     private readonly ManualResetEventSlim _drainedSignal = new(initialState: true);
     private int _pendingCount;
@@ -25,16 +25,23 @@ internal sealed class AsyncLogDispatcher : IObservableLogDispatcher
     /// Starts a long-running worker that drains the queue and writes to <paramref name="writer"/>.
     /// </summary>
     /// <param name="writer">Shared file writer for serialized output.</param>
+    /// <param name="render">Formats file/console/event payloads on the worker thread.</param>
     /// <param name="afterWrite">Optional hook invoked after each successful line write (for example console/event sinks).</param>
-    public AsyncLogDispatcher(ObservableFileWriter writer, Action<LogEntry, string?, string?>? afterWrite = null)
+    public AsyncLogDispatcher(
+        ObservableFileWriter writer,
+        Func<LogEntry, (string FileMessage, string? ConsoleMessage, string? EventMessage)> render,
+        Action<LogEntry, string?, string?>? afterWrite = null)
     {
         _writer = writer;
+        _render = render;
         _afterWrite = afterWrite;
         _worker = Task.Factory.StartNew(ProcessQueue, TaskCreationOptions.LongRunning);
     }
 
     /// <inheritdoc />
+#pragma warning disable IDE0060 // Remove unused parameter
     public void Enqueue(LogEntry entry, string fileMessage, string? consoleMessage, string? eventMessage)
+#pragma warning restore IDE0060 // Remove unused parameter
     {
         if (_queue.IsAddingCompleted)
         {
@@ -45,7 +52,7 @@ internal sealed class AsyncLogDispatcher : IObservableLogDispatcher
         _drainedSignal.Reset();
         try
         {
-            _queue.Add((entry, fileMessage, consoleMessage, eventMessage));
+            _queue.Add(entry);
         }
         catch (InvalidOperationException)
         {
@@ -85,10 +92,11 @@ internal sealed class AsyncLogDispatcher : IObservableLogDispatcher
     private void ProcessQueue()
     {
         // ConsumingEnumerable blocks efficiently until data arrives or adding completes.
-        foreach ((LogEntry entry, string fileMessage, string? consoleMessage, string? eventMessage) in _queue.GetConsumingEnumerable())
+        foreach (LogEntry entry in _queue.GetConsumingEnumerable())
         {
             try
             {
+                (string fileMessage, string? consoleMessage, string? eventMessage) = _render(entry);
                 _writer.WriteLine(entry.Timestamp, fileMessage);
                 // Keep async behavior (off caller thread) but make file visibility immediate.
                 _writer.Flush();
