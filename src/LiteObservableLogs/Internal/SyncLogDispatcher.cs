@@ -11,9 +11,11 @@ internal sealed class SyncLogDispatcher(ObservableFileWriter writer) : IObservab
     private readonly ObservableFileWriter _writer = writer;
 
     /// <inheritdoc />
-    public void Enqueue(LogEntry entry, string formattedMessage)
+    public void Enqueue(LogEntry entry, string fileMessage, string? consoleMessage, string? eventMessage)
     {
-        _writer.WriteLine(entry.Timestamp, formattedMessage);
+        _ = consoleMessage;
+        _ = eventMessage;
+        _writer.WriteLine(entry.Timestamp, fileMessage);
         // Sync mode guarantees visibility as soon as the call returns.
         _writer.Flush();
     }

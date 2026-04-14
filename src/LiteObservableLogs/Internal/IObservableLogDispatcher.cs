@@ -10,7 +10,7 @@ internal interface IObservableLogDispatcher : IDisposable
     /// <summary>
     /// Queues or writes one formatted log line for the given entry.
     /// </summary>
-    public void Enqueue(LogEntry entry, string formattedMessage);
+    public void Enqueue(LogEntry entry, string fileMessage, string? consoleMessage, string? eventMessage);
 
     /// <summary>
     /// Ensures all accepted entries are persisted to the underlying writer.

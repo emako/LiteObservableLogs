@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Threading;
 
 namespace LiteObservableLogs;
@@ -143,7 +142,7 @@ public static class Log
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[LiteObservableLogs] Log.Received subscriber threw: {ex}");
+                System.Diagnostics.Debug.WriteLine($"[LiteObservableLogs] Log.Received subscriber threw: {ex}");
             }
         }
     }

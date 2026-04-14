@@ -64,12 +64,20 @@ internal sealed class ObservableLogSink : IDisposable
             scopes ?? [],
             resolvedCaller);
 
-        string fileRendered = _formatter.FormatFile(entry);
-        _dispatcher.Enqueue(entry, fileRendered);
+        LogStringBuilder? sharedBuilder = _formatter.CreateSharedBuilder(entry);
+        string fileRendered = _formatter.FormatFile(entry, sharedBuilder);
+        string? consoleRendered = _options.WriteToConsole
+            ? _formatter.FormatConsole(entry, sharedBuilder)
+            : null;
+        string? eventRendered = _options.PublishToEvent
+            ? _formatter.FormatEvent(entry, sharedBuilder)
+            : null;
+
+        _dispatcher.Enqueue(entry, fileRendered, consoleRendered, eventRendered);
         if (_options.LoggerType != LogDispatchBehavior.Async)
         {
-            WriteConsole(entry);
-            PublishEvent(entry);
+            WriteConsole(entry, consoleRendered);
+            PublishEvent(entry, eventRendered);
         }
     }
 
@@ -115,21 +123,21 @@ internal sealed class ObservableLogSink : IDisposable
     }
 
     /// <summary>Invoked after async file writes to fan out to console and in-process events.</summary>
-    private void DispatchSecondaryTargets(LogEntry entry)
+    private void DispatchSecondaryTargets(LogEntry entry, string? consoleRendered, string? eventRendered)
     {
-        WriteConsole(entry);
-        PublishEvent(entry);
+        WriteConsole(entry, consoleRendered);
+        PublishEvent(entry, eventRendered);
     }
 
     /// <summary>Renders and writes to <see cref="Console"/> or <see cref="System.Diagnostics.Debug"/> when enabled.</summary>
-    private void WriteConsole(LogEntry entry)
+    private void WriteConsole(LogEntry entry, string? rendered = null)
     {
         if (!_options.WriteToConsole)
         {
             return;
         }
 
-        string rendered = _formatter.FormatConsole(entry);
+        rendered ??= _formatter.FormatConsole(entry);
         if (_options.ConsoleTarget == ConsoleTarget.Debug)
         {
             Debug.WriteLine(rendered);
@@ -140,14 +148,14 @@ internal sealed class ObservableLogSink : IDisposable
     }
 
     /// <summary>Raises <see cref="Log.Publish"/> with the event-template formatted line.</summary>
-    private void PublishEvent(LogEntry entry)
+    private void PublishEvent(LogEntry entry, string? rendered = null)
     {
         if (!_options.PublishToEvent)
         {
             return;
         }
 
-        string rendered = _formatter.FormatEvent(entry);
+        rendered ??= _formatter.FormatEvent(entry);
 
         Log.Publish(new ObservableLogEvent(
             entry.Timestamp,

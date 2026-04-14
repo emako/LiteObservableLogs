@@ -11,10 +11,11 @@ namespace LiteObservableLogs.Internal;
 internal sealed class AsyncLogDispatcher : IObservableLogDispatcher
 {
     private readonly ObservableFileWriter _writer;
-    private readonly Action<LogEntry>? _afterWrite;
-    private readonly BlockingCollection<(LogEntry Entry, string Message)> _queue = new(new ConcurrentQueue<(LogEntry, string)>());
-    private readonly CancellationTokenSource _cts = new();
+    private readonly Action<LogEntry, string?, string?>? _afterWrite;
+    private readonly BlockingCollection<(LogEntry Entry, string FileMessage, string? ConsoleMessage, string? EventMessage)> _queue = new(
+        new ConcurrentQueue<(LogEntry, string, string?, string?)>());
     private readonly Task _worker;
+    private readonly ManualResetEventSlim _drainedSignal = new(initialState: true);
     private int _pendingCount;
 
     /// <summary>
@@ -22,15 +23,15 @@ internal sealed class AsyncLogDispatcher : IObservableLogDispatcher
     /// </summary>
     /// <param name="writer">Shared file writer for serialized output.</param>
     /// <param name="afterWrite">Optional hook invoked after each successful line write (for example console/event sinks).</param>
-    public AsyncLogDispatcher(ObservableFileWriter writer, Action<LogEntry>? afterWrite = null)
+    public AsyncLogDispatcher(ObservableFileWriter writer, Action<LogEntry, string?, string?>? afterWrite = null)
     {
         _writer = writer;
         _afterWrite = afterWrite;
-        _worker = Task.Factory.StartNew(ProcessQueue, _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+        _worker = Task.Factory.StartNew(ProcessQueue, TaskCreationOptions.LongRunning);
     }
 
     /// <inheritdoc />
-    public void Enqueue(LogEntry entry, string formattedMessage)
+    public void Enqueue(LogEntry entry, string fileMessage, string? consoleMessage, string? eventMessage)
     {
         if (_queue.IsAddingCompleted)
         {
@@ -38,18 +39,21 @@ internal sealed class AsyncLogDispatcher : IObservableLogDispatcher
         }
 
         Interlocked.Increment(ref _pendingCount);
-        _queue.Add((entry, formattedMessage));
+        _drainedSignal.Reset();
+        try
+        {
+            _queue.Add((entry, fileMessage, consoleMessage, eventMessage));
+        }
+        catch (InvalidOperationException)
+        {
+            MarkOneItemProcessed();
+        }
     }
 
     /// <inheritdoc />
     public void Flush()
     {
-        // Wait until queue drains, then flush writer buffers for deterministic tests and shutdown.
-        while (Volatile.Read(ref _pendingCount) > 0)
-        {
-            Thread.Sleep(5);
-        }
-
+        _drainedSignal.Wait();
         _writer.Flush();
     }
 
@@ -66,8 +70,7 @@ internal sealed class AsyncLogDispatcher : IObservableLogDispatcher
         {
         }
 
-        _cts.Cancel();
-        _cts.Dispose();
+        _drainedSignal.Dispose();
         _queue.Dispose();
         _writer.Dispose();
     }
@@ -76,19 +79,44 @@ internal sealed class AsyncLogDispatcher : IObservableLogDispatcher
     private void ProcessQueue()
     {
         // ConsumingEnumerable blocks efficiently until data arrives or adding completes.
-        foreach ((LogEntry entry, string message) in _queue.GetConsumingEnumerable(_cts.Token))
+        foreach ((LogEntry entry, string fileMessage, string? consoleMessage, string? eventMessage) in _queue.GetConsumingEnumerable())
         {
             try
             {
-                _writer.WriteLine(entry.Timestamp, message);
+                _writer.WriteLine(entry.Timestamp, fileMessage);
                 // Keep async behavior (off caller thread) but make file visibility immediate.
                 _writer.Flush();
-                _afterWrite?.Invoke(entry);
+                InvokeAfterWriteSafe(entry, consoleMessage, eventMessage);
             }
             finally
             {
-                Interlocked.Decrement(ref _pendingCount);
+                MarkOneItemProcessed();
             }
+        }
+    }
+
+    private void InvokeAfterWriteSafe(LogEntry entry, string? consoleMessage, string? eventMessage)
+    {
+        if (_afterWrite == null)
+        {
+            return;
+        }
+
+        try
+        {
+            _afterWrite(entry, consoleMessage, eventMessage);
+        }
+        catch
+        {
+            // Keep background pipeline alive even when secondary outputs fail.
+        }
+    }
+
+    private void MarkOneItemProcessed()
+    {
+        if (Interlocked.Decrement(ref _pendingCount) == 0)
+        {
+            _drainedSignal.Set();
         }
     }
 }
