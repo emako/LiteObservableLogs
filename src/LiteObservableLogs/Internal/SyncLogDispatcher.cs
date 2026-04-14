@@ -1,5 +1,8 @@
 namespace LiteObservableLogs.Internal;
 
+#pragma warning disable IDE0079 // Remove unnecessary suppression
+#pragma warning disable IDE0060 // Remove unused parameter
+
 /// <summary>
 /// Writes each formatted line on the caller thread and flushes immediately for strict durability ordering.
 /// </summary>
@@ -11,9 +14,8 @@ internal sealed class SyncLogDispatcher(ObservableFileWriter writer) : IObservab
     private readonly ObservableFileWriter _writer = writer;
 
     /// <inheritdoc />
-#pragma warning disable IDE0060 // Remove unused parameter
     public void Enqueue(LogEntry entry, string fileMessage, string? consoleMessage, string? eventMessage)
-#pragma warning restore IDE0060 // Remove unused parameter
+
     {
         // Console/Event payloads are relevant for async secondary dispatch only.
         _writer.WriteLine(entry.Timestamp, fileMessage);
@@ -33,3 +35,6 @@ internal sealed class SyncLogDispatcher(ObservableFileWriter writer) : IObservab
         _writer.Dispose();
     }
 }
+
+#pragma warning restore IDE0060 // Remove unused parameter
+#pragma warning restore IDE0079 // Remove unnecessary suppression

@@ -66,8 +66,11 @@ internal sealed class AsyncLogDispatcher : IObservableLogDispatcher
         {
             _worker.Wait();
         }
-        catch (AggregateException)
+        catch (AggregateException ex)
         {
+#if DEBUG
+            System.Diagnostics.Debug.WriteLine($"[LiteObservableLogs] Async worker wait failed during dispose: {ex}");
+#endif
         }
 
         _drainedSignal.Dispose();
@@ -106,9 +109,12 @@ internal sealed class AsyncLogDispatcher : IObservableLogDispatcher
         {
             _afterWrite(entry, consoleMessage, eventMessage);
         }
-        catch
+        catch (Exception ex)
         {
             // Keep background pipeline alive even when secondary outputs fail.
+#if DEBUG
+            System.Diagnostics.Debug.WriteLine($"[LiteObservableLogs] Secondary log dispatch failed: {ex}");
+#endif
         }
     }
 

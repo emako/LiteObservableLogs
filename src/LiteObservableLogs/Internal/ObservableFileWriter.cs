@@ -262,9 +262,12 @@ internal sealed class ObservableFileWriter : IDisposable
             {
                 file.Delete();
             }
-            catch
+            catch (Exception ex)
             {
                 // Ignore retention cleanup failures to avoid affecting primary log writes.
+#if DEBUG
+                System.Diagnostics.Debug.WriteLine($"[LiteObservableLogs] Retention cleanup skipped '{file.FullName}': {ex}");
+#endif
             }
         }
     }

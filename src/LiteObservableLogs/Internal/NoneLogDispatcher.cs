@@ -1,14 +1,15 @@
 namespace LiteObservableLogs.Internal;
 
+#pragma warning disable IDE0079 // Remove unnecessary suppression
+#pragma warning disable IDE0060 // Remove unused parameter
+
 /// <summary>
 /// No-op dispatcher used when <see cref="LogDispatchBehavior.Silent"/> is selected.
 /// </summary>
 internal sealed class NoneLogDispatcher : IObservableLogDispatcher
 {
     /// <inheritdoc />
-#pragma warning disable IDE0060 // Remove unused parameter
     public void Enqueue(LogEntry entry, string fileMessage, string? consoleMessage, string? eventMessage)
-#pragma warning restore IDE0060 // Remove unused parameter
     {
         // Intentionally no-op for silent mode.
     }
@@ -23,3 +24,6 @@ internal sealed class NoneLogDispatcher : IObservableLogDispatcher
     {
     }
 }
+
+#pragma warning restore IDE0060 // Remove unused parameter
+#pragma warning restore IDE0079 // Remove unnecessary suppression
