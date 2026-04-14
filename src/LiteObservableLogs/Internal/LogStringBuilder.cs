@@ -8,29 +8,49 @@ using System.Text.RegularExpressions;
 namespace LiteObservableLogs.Internal;
 
 /// <summary>
-/// Materialized view of a log entry used by output-template rendering.
+/// Substitutes <c>{Name}</c> and <c>{Name:format}</c> tokens in output templates using the current <see cref="LogEntry"/>.
 /// </summary>
+/// <remarks>
+/// Supported names include
+/// <c>Timestamp</c>, <c>Level</c> (with optional Serilog-style width/format tokens),
+/// <c>Message</c>, <c>Exception</c>, <c>NewLine</c>, <c>SourceContext</c> (category),
+/// <c>EventId</c>, <c>Scopes</c>, <c>Caller</c> (compact file:line,member),
+/// <c>CallerFileName</c>, <c>CallerLineNumber</c>, <c>CallerMemberName</c>,
+/// <c>ThreadId</c>, and <c>UserName</c>.
+/// When the template omits <c>{Exception}</c>, exception text is appended to <c>Message</c> for backward compatibility.
+/// </remarks>
 internal sealed class LogStringBuilder(LogEntry entry)
 {
     private static readonly Regex TemplateTokenRegex = new(@"\{(?<name>[A-Za-z0-9_]+)(:(?<format>[^}]+))?\}", RegexOptions.Compiled | RegexOptions.CultureInvariant);
     private static readonly string HostUserName = Environment.UserName;
 
+    /// <summary>Entry timestamp.</summary>
     public DateTimeOffset Timestamp { get; } = entry.Timestamp;
 
+    /// <summary>Entry severity.</summary>
     public LogLevel Level { get; } = entry.Level;
 
+    /// <summary>Structured event id from the logging API.</summary>
     public EventId EventId { get; } = entry.EventId;
 
+    /// <summary>Rendered message body.</summary>
     public string Message { get; } = entry.Message;
 
+    /// <summary>Exception from the log call, if any.</summary>
     public Exception? Exception { get; } = entry.Exception;
 
+    /// <summary>Optional caller metadata.</summary>
     public CallerInfo? Caller { get; } = entry.Caller;
 
+    /// <summary>Managed thread id from caller resolution.</summary>
     public int? ThreadId { get; } = entry.Caller?.ThreadId;
 
+    /// <summary>Active scope chain at log time.</summary>
     public IReadOnlyList<string> Scopes { get; } = entry.Scopes;
 
+    /// <summary>
+    /// Replaces all template tokens in <paramref name="template"/> and returns the final single-line (or multi-line if <c>{NewLine}</c> is used) text.
+    /// </summary>
     public string Render(string template)
     {
         if (string.IsNullOrEmpty(template))
@@ -82,6 +102,7 @@ internal sealed class LogStringBuilder(LogEntry entry)
         };
     }
 
+    /// <summary>Maps <see cref="LogLevel"/> to display strings; supports Serilog-style width tokens (u3, w4, etc.).</summary>
     private string RenderLevel(string? format)
     {
         string value = Level switch

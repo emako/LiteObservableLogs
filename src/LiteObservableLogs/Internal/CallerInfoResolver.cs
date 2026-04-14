@@ -8,8 +8,15 @@ using System.Threading;
 
 namespace LiteObservableLogs.Internal;
 
+/// <summary>
+/// Walks the stack to find the first frame outside this library and Microsoft.Extensions.Logging,
+/// producing <see cref="CallerInfo"/> for optional inclusion in log output.
+/// </summary>
 internal static class CallerInfoResolver
 {
+    /// <summary>
+    /// Resolves caller metadata for the current thread, or placeholders when no suitable frame exists.
+    /// </summary>
     public static CallerInfo Resolve()
     {
         StackFrame? stackFrame = new StackTrace(true)
@@ -41,7 +48,8 @@ internal static class CallerInfoResolver
 
         string? fileName = stackFrame.GetFileName();
         int fileLineNumber = stackFrame.GetFileLineNumber();
-        string? methodName = RenderMethod(stackFrame.GetMethod());
+        MethodBase? method = stackFrame.GetMethod();
+        string? methodName = method is null ? null : RenderMethod(method);
 
         return new CallerInfo(
             fileName: fileName is null ? "<unknown>" : Path.GetFileName(fileName),
@@ -53,7 +61,7 @@ internal static class CallerInfoResolver
         {
             if (method is MethodInfo info && info.IsGenericMethod)
             {
-                // Append method parameters
+                // Append generic type argument names in the same style as stack traces.
                 StringBuilder result = new(method.Name);
 
                 Type[] genericArguments = info.GetGenericArguments();

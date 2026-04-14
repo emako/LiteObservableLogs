@@ -17,6 +17,9 @@ public sealed class ObservableLoggerFacade : IDisposable
     private readonly ObservableLoggerOptions? _optionsSnapshot;
     private bool _disposed;
 
+    /// <summary>
+    /// Constructs a facade over an existing <see cref="ILogger"/>, optionally owning a provider for flush/dispose.
+    /// </summary>
     internal ObservableLoggerFacade(
         ILogger logger,
         ObservableLoggerProvider? provider,
@@ -39,6 +42,9 @@ public sealed class ObservableLoggerFacade : IDisposable
     /// </summary>
     public ILogger InnerLogger => _logger;
 
+    /// <summary>
+    /// Cloned options used when bridging to host logging (for example Serilog-style compatibility).
+    /// </summary>
     internal ObservableLoggerOptions? OptionsSnapshot => _optionsSnapshot?.Clone();
 
     /// <summary>

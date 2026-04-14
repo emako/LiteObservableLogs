@@ -118,6 +118,9 @@ public static class Log
         _logger.Exception(exception, message);
     }
 
+    /// <summary>
+    /// Raises <see cref="Received"/> when event publishing is enabled on the active sink.
+    /// </summary>
     internal static void Publish(ObservableLogEvent entry)
     {
         Received?.Invoke(null, entry);

@@ -2,9 +2,18 @@ using System;
 
 namespace LiteObservableLogs.Internal;
 
+/// <summary>
+/// Abstraction over sync/async delivery of formatted lines to storage (and optional post-write hooks).
+/// </summary>
 internal interface IObservableLogDispatcher : IDisposable
 {
+    /// <summary>
+    /// Queues or writes one formatted log line for the given entry.
+    /// </summary>
     public void Enqueue(LogEntry entry, string formattedMessage);
 
+    /// <summary>
+    /// Ensures all accepted entries are persisted to the underlying writer.
+    /// </summary>
     public void Flush();
 }

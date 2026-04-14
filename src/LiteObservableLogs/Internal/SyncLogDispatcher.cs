@@ -1,14 +1,21 @@
 namespace LiteObservableLogs.Internal;
 
+/// <summary>
+/// Writes each formatted line on the caller thread and flushes immediately for strict durability ordering.
+/// </summary>
 internal sealed class SyncLogDispatcher : IObservableLogDispatcher
 {
     private readonly ObservableFileWriter _writer;
 
+    /// <summary>
+    /// Creates a dispatcher that writes through the shared <see cref="ObservableFileWriter"/>.
+    /// </summary>
     public SyncLogDispatcher(ObservableFileWriter writer)
     {
         _writer = writer;
     }
 
+    /// <inheritdoc />
     public void Enqueue(LogEntry entry, string formattedMessage)
     {
         _writer.WriteLine(entry.Timestamp, formattedMessage);
@@ -16,11 +23,13 @@ internal sealed class SyncLogDispatcher : IObservableLogDispatcher
         _writer.Flush();
     }
 
+    /// <inheritdoc />
     public void Flush()
     {
         _writer.Flush();
     }
 
+    /// <inheritdoc />
     public void Dispose()
     {
         _writer.Dispose();

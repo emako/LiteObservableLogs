@@ -6,33 +6,37 @@ namespace LiteObservableLogs;
 /// <summary>
 /// Represents one observable log entry published through <see cref="Log.Received"/>.
 /// </summary>
-public sealed class ObservableLogEvent
+/// <param name="timestamp">Time of the log event.</param>
+/// <param name="level">Severity level.</param>
+/// <param name="category">Logger category name.</param>
+/// <param name="message">Raw message text before template rendering.</param>
+/// <param name="exception">Exception passed to the logger, if any.</param>
+/// <param name="renderedText">Final line produced by the configured event output template (or fallback).</param>
+public sealed class ObservableLogEvent(
+    DateTimeOffset timestamp,
+    LogLevel level,
+    string category,
+    string message,
+    Exception? exception,
+    string renderedText)
 {
-    public ObservableLogEvent(
-        DateTimeOffset timestamp,
-        LogLevel level,
-        string category,
-        string message,
-        Exception? exception,
-        string renderedText)
-    {
-        Timestamp = timestamp;
-        Level = level;
-        Category = category;
-        Message = message;
-        Exception = exception;
-        RenderedText = renderedText;
-    }
+    /// <summary>Time of the log event.</summary>
+    public DateTimeOffset Timestamp { get; } = timestamp;
 
-    public DateTimeOffset Timestamp { get; }
+    /// <summary>Severity level.</summary>
+    public LogLevel Level { get; } = level;
 
-    public LogLevel Level { get; }
+    /// <summary>Logger category name.</summary>
+    public string Category { get; } = category;
 
-    public string Category { get; }
+    /// <summary>Raw message text before per-sink formatting.</summary>
+    public string Message { get; } = message;
 
-    public string Message { get; }
+    /// <summary>Exception passed to the logger, if any.</summary>
+    public Exception? Exception { get; } = exception;
 
-    public Exception? Exception { get; }
-
-    public string RenderedText { get; }
+    /// <summary>
+    /// Fully formatted line as it would appear for the event sink (console/file templates differ).
+    /// </summary>
+    public string RenderedText { get; } = renderedText;
 }

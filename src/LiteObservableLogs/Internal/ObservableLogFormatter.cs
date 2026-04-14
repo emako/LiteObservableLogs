@@ -36,6 +36,9 @@ internal sealed class ObservableLogFormatter
         return FormatWithTemplateOrFallback(entry, _options.EventOutputTemplate, _options.OutputTemplate);
     }
 
+    /// <summary>
+    /// Uses the sink-specific template when set; otherwise the global template; otherwise <see cref="LogStringBuilder.RenderFallback"/>.
+    /// </summary>
     private string FormatWithTemplateOrFallback(LogEntry entry, string? sinkTemplate, string? globalTemplate)
     {
         string? template = string.IsNullOrWhiteSpace(sinkTemplate) ? globalTemplate : sinkTemplate;

@@ -100,6 +100,7 @@ internal sealed class ObservableLogSink : IDisposable
         _dispatcher.Dispose();
     }
 
+    /// <summary>Selects silent, synchronous, or asynchronous dispatch and wires secondary-output callbacks.</summary>
     private IObservableLogDispatcher CreateDispatcher()
     {
         if (_options.LoggerType == LogDispatchBehavior.Silent)
@@ -113,12 +114,14 @@ internal sealed class ObservableLogSink : IDisposable
             : new AsyncLogDispatcher(writer, DispatchSecondaryTargets);
     }
 
+    /// <summary>Invoked after async file writes to fan out to console and in-process events.</summary>
     private void DispatchSecondaryTargets(LogEntry entry)
     {
         WriteConsole(entry);
         PublishEvent(entry);
     }
 
+    /// <summary>Renders and writes to <see cref="Console"/> or <see cref="System.Diagnostics.Debug"/> when enabled.</summary>
     private void WriteConsole(LogEntry entry)
     {
         if (!_options.WriteToConsole)
@@ -136,6 +139,7 @@ internal sealed class ObservableLogSink : IDisposable
         Console.WriteLine(rendered);
     }
 
+    /// <summary>Raises <see cref="Log.Publish"/> with the event-template formatted line.</summary>
     private void PublishEvent(LogEntry entry)
     {
         if (!_options.PublishToEvent)

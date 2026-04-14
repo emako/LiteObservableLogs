@@ -15,6 +15,9 @@ public sealed class ObservableLogger : ILogger
     private readonly Func<IExternalScopeProvider?> _scopeProviderAccessor;
     private readonly bool _includeScopes;
 
+    /// <summary>
+    /// Binds a category name to the shared sink and optional external scope provider.
+    /// </summary>
     internal ObservableLogger(
         string categoryName,
         ObservableLogSink sink,
