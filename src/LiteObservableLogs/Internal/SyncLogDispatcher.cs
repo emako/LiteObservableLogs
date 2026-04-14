@@ -11,10 +11,11 @@ internal sealed class SyncLogDispatcher(ObservableFileWriter writer) : IObservab
     private readonly ObservableFileWriter _writer = writer;
 
     /// <inheritdoc />
+#pragma warning disable IDE0060 // Remove unused parameter
     public void Enqueue(LogEntry entry, string fileMessage, string? consoleMessage, string? eventMessage)
+#pragma warning restore IDE0060 // Remove unused parameter
     {
-        _ = consoleMessage;
-        _ = eventMessage;
+        // Console/Event payloads are relevant for async secondary dispatch only.
         _writer.WriteLine(entry.Timestamp, fileMessage);
         // Sync mode guarantees visibility as soon as the call returns.
         _writer.Flush();

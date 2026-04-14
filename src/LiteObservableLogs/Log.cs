@@ -142,7 +142,9 @@ public static class Log
             }
             catch (Exception ex)
             {
+#if DEBUG
                 System.Diagnostics.Debug.WriteLine($"[LiteObservableLogs] Log.Received subscriber threw: {ex}");
+#endif
             }
         }
     }

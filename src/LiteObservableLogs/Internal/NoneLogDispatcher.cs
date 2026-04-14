@@ -6,12 +6,11 @@ namespace LiteObservableLogs.Internal;
 internal sealed class NoneLogDispatcher : IObservableLogDispatcher
 {
     /// <inheritdoc />
+#pragma warning disable IDE0060 // Remove unused parameter
     public void Enqueue(LogEntry entry, string fileMessage, string? consoleMessage, string? eventMessage)
+#pragma warning restore IDE0060 // Remove unused parameter
     {
-        _ = entry;
-        _ = fileMessage;
-        _ = consoleMessage;
-        _ = eventMessage;
+        // Intentionally no-op for silent mode.
     }
 
     /// <inheritdoc />
