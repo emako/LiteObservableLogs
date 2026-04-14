@@ -225,12 +225,11 @@ internal sealed class ObservableFileWriter : IDisposable
             return;
         }
 
-        FileInfo[] files = new DirectoryInfo(_options.LogFolder)
+        FileInfo[] files = [.. new DirectoryInfo(_options.LogFolder)
             .GetFiles("*", SearchOption.TopDirectoryOnly)
             .Where(static file => !file.Attributes.HasFlag(FileAttributes.Directory))
             .Where(IsRetentionCandidate)
-            .OrderByDescending(file => file.LastWriteTimeUtc)
-            .ToArray();
+            .OrderByDescending(file => file.LastWriteTimeUtc)];
 
         DateTime utcNow = DateTime.UtcNow;
         int keepCount = _options.RetainedFileCountLimit ?? int.MaxValue;

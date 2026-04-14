@@ -52,6 +52,8 @@ public sealed class ObservableLoggerFacade : IDisposable
     /// </summary>
     public void None(params object[] values)
     {
+        // Avoid unused parameter warning.
+        _ = values;
     }
 
     /// <summary>

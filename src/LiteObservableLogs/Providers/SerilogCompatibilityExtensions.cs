@@ -1,8 +1,7 @@
+using Microsoft.Extensions.Logging;
 using System;
-using LiteObservableLogs;
-using LiteObservableLogs.Providers;
 
-namespace Microsoft.Extensions.Logging;
+namespace LiteObservableLogs.Providers;
 
 /// <summary>
 /// Compatibility extensions so callers can keep using AddSerilog style code.

@@ -72,7 +72,7 @@ public sealed class ObservableLogger : ILogger
             ? state?.ToString() ?? string.Empty
             : formatter(state, exception);
 
-        List<string> scopes = new();
+        List<string> scopes = [];
         if (_includeScopes)
         {
             // Snapshot scopes now to keep asynchronous dispatch independent of ambient context.

@@ -3,14 +3,9 @@ namespace LiteObservableLogs.Internal;
 /// <summary>
 /// Renders <see cref="LogEntry"/> values into a single line text format.
 /// </summary>
-internal sealed class ObservableLogFormatter
+internal sealed class ObservableLogFormatter(ObservableLoggerOptions options)
 {
-    private readonly ObservableLoggerOptions _options;
-
-    public ObservableLogFormatter(ObservableLoggerOptions options)
-    {
-        _options = options;
-    }
+    private readonly ObservableLoggerOptions _options = options;
 
     /// <summary>
     /// Formats file output using the configured file template when present.
