@@ -7,6 +7,10 @@ namespace LiteObservableLogs.Internal;
 
 /// <summary>
 /// Dispatches log entries on a dedicated background worker.
+/// Bounded by producer activity and consumed by a single background worker.
+/// The worker blocks on <see cref="BlockingCollection{T}.GetConsumingEnumerable()"/>
+/// when no items are available, and wakes only when producers call <see cref="Enqueue"/>.
+/// This provides wait-for-work semantics (no busy spinning) while preserving FIFO queue behavior.
 /// </summary>
 internal sealed class AsyncLogDispatcher : IObservableLogDispatcher
 {
@@ -39,9 +43,7 @@ internal sealed class AsyncLogDispatcher : IObservableLogDispatcher
     }
 
     /// <inheritdoc />
-#pragma warning disable IDE0060 // Remove unused parameter
     public void Enqueue(LogEntry entry, string fileMessage, string? consoleMessage, string? eventMessage)
-#pragma warning restore IDE0060 // Remove unused parameter
     {
         if (_queue.IsAddingCompleted)
         {

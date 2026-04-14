@@ -34,7 +34,7 @@ public partial class App : Application
                 .MinimumLevel.Debug()
                 .CreateLogger();
 
-            services.AddLogging(c => c.AddSerilog());
+            //services.AddLogging(c => c.AddSerilog());
             services.AddSingleton<MainViewModel>();
         })
         .Build();
