@@ -28,7 +28,7 @@ public partial class App : Application
                     retainedFileTimeLimit: TimeSpan.FromDays(21),
                     rollingSize: 10240L) // 1024 KB = 1 MB
                 .WriteTo.Console(target: ConsoleTarget.Debug)
-                .WriteTo.Event()
+                .ObserveTo.Event()
                 .WriteTo.Option(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff}|{UserName}|{Level:u5}|{ThreadId:d3}|{CallerFileName}:{CallerLineNumber}|{CallerMemberName}|{Message}{NewLine}{StackFrames}")
                 .LogDispatchBehavior.Async()
                 .MinimumLevel.Debug()

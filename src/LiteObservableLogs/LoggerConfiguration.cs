@@ -11,6 +11,7 @@ public sealed class LoggerConfiguration
 {
     private readonly ObservableLoggerOptions _options = new();
     private readonly WriteToConfiguration _writeTo;
+    private readonly ObserveToConfiguration _observeTo;
     private readonly MinimumLevelConfiguration _minimumLevel;
     private readonly LogDispatchBehaviorConfiguration _logDispatchBehavior;
     private bool _loggerCreated;
@@ -21,6 +22,7 @@ public sealed class LoggerConfiguration
     public LoggerConfiguration()
     {
         _writeTo = new WriteToConfiguration(this);
+        _observeTo = new ObserveToConfiguration(this);
         _minimumLevel = new MinimumLevelConfiguration(this);
         _logDispatchBehavior = new LogDispatchBehaviorConfiguration(this);
     }
@@ -37,6 +39,11 @@ public sealed class LoggerConfiguration
     /// Provides Serilog-style sink configuration entry.
     /// </summary>
     public WriteToConfiguration WriteTo => _writeTo;
+
+    /// <summary>
+    /// Provides event-observation output configuration entry.
+    /// </summary>
+    public ObserveToConfiguration ObserveTo => _observeTo;
 
     /// <summary>
     /// Provides Serilog-style minimum level configuration entry.
@@ -206,7 +213,7 @@ public sealed class LoggerConfiguration
         RollingInterval rollingInterval,
         int? retainedFileCountLimit,
         TimeSpan? retainedFileTimeLimit,
-        long rollingSize = 0)
+        long rollingSize = 0L)
     {
         if (string.IsNullOrWhiteSpace(path))
         {
@@ -314,16 +321,29 @@ public sealed class LoggerConfiguration
             return _owner.EnableConsoleCompatibility(outputTemplate, target);
         }
 
-        /// <summary>Publishes formatted lines to <see cref="Log.Received"/>.</summary>
-        public LoggerConfiguration Event(string? outputTemplate = null)
-        {
-            return _owner.EnableEventCompatibility(outputTemplate);
-        }
-
         /// <summary>Sets the shared default output template for sinks that do not specify their own.</summary>
         public LoggerConfiguration Option(string? outputTemplate = null)
         {
             return _owner.SetWriteToOptionsCompatibility(outputTemplate);
+        }
+    }
+
+    /// <summary>
+    /// Event-observation output configuration wrapper.
+    /// </summary>
+    public sealed class ObserveToConfiguration
+    {
+        private readonly LoggerConfiguration _owner;
+
+        internal ObserveToConfiguration(LoggerConfiguration owner)
+        {
+            _owner = owner;
+        }
+
+        /// <summary>Publishes formatted lines to <see cref="Log.Received"/>.</summary>
+        public LoggerConfiguration Event(string? outputTemplate = null)
+        {
+            return _owner.EnableEventCompatibility(outputTemplate);
         }
     }
 

@@ -187,7 +187,7 @@ public sealed class LiteObservableLogsTests
         {
             using ObservableLoggerFacade logger = new LoggerConfiguration()
                 .WriteTo.Console("CONSOLE|{Level:u3}|{SourceContext}|{Message}")
-                .WriteTo.Event("EVENT|{Level:u3}|{SourceContext}|{Message}")
+                .ObserveTo.Event("EVENT|{Level:u3}|{SourceContext}|{Message}")
                 .UseDispatchBehavior(LogDispatchBehavior.Sync)
                 .UseCategory("ConsoleEventCategory")
                 .MinimumLevel.Information()
@@ -229,7 +229,7 @@ public sealed class LiteObservableLogsTests
                 .WriteTo.Option("GLOBAL|{Level:u3}|{Message}")
                 .WriteTo.File(Path.Combine(temp.Path, "global.log"))
                 .WriteTo.Console()
-                .WriteTo.Event()
+                .ObserveTo.Event()
                 .LogDispatchBehavior.Sync()
                 .MinimumLevel.Information()
                 .CreateLogger();
@@ -296,7 +296,7 @@ public sealed class LiteObservableLogsTests
         {
             using ObservableLoggerFacade logger = new LoggerConfiguration()
                 .WriteTo.Console("ASYNC_CONSOLE|{Message}")
-                .WriteTo.Event("ASYNC_EVENT|{Message}")
+                .ObserveTo.Event("ASYNC_EVENT|{Message}")
                 .LogDispatchBehavior.Async()
                 .MinimumLevel.Information()
                 .CreateLogger();
