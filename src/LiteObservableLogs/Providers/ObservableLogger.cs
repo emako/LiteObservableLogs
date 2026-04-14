@@ -38,11 +38,11 @@ public sealed class ObservableLogger : ILogger
     {
         if (!_includeScopes)
         {
-            return NullScope.Instance;
+            return NoneScope.Instance;
         }
 
         IExternalScopeProvider? scopeProvider = _scopeProviderAccessor();
-        return scopeProvider?.Push(state) ?? NullScope.Instance;
+        return scopeProvider?.Push(state) ?? NoneScope.Instance;
     }
 
     /// <summary>

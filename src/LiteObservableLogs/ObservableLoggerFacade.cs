@@ -35,7 +35,7 @@ public sealed class ObservableLoggerFacade : IDisposable
     /// <summary>
     /// Gets a no-op facade that safely ignores all writes.
     /// </summary>
-    public static ObservableLoggerFacade Empty { get; } = new(NullLogger.Instance, null, false);
+    public static ObservableLoggerFacade Empty { get; } = new(NoneLogger.Instance, null, false);
 
     /// <summary>
     /// Gets the underlying Microsoft logger instance.

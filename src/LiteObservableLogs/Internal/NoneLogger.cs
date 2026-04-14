@@ -6,12 +6,12 @@ namespace LiteObservableLogs.Internal;
 /// <summary>
 /// Singleton <see cref="ILogger"/> that discards all output; used by <see cref="ObservableLoggerFacade.Empty"/>.
 /// </summary>
-internal sealed class NullLogger : ILogger
+internal sealed class NoneLogger : ILogger
 {
     /// <summary>Shared instance for no-op logging.</summary>
-    public static NullLogger Instance { get; } = new();
+    public static NoneLogger Instance { get; } = new();
 
-    private NullLogger()
+    private NoneLogger()
     {
     }
 
@@ -19,7 +19,7 @@ internal sealed class NullLogger : ILogger
     public IDisposable BeginScope<TState>(TState state)
         where TState : notnull
     {
-        return NullScope.Instance;
+        return NoneScope.Instance;
     }
 
     /// <inheritdoc />
