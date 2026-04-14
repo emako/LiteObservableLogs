@@ -12,6 +12,6 @@ internal sealed class CallerInfo(string? fileName, string? memberName, int lineN
 
     public string Render()
     {
-        return $"{FileName}:{LineNumber}|{MemberName}";
+        return $"{FileName}:{LineNumber},{MemberName}";
     }
 }

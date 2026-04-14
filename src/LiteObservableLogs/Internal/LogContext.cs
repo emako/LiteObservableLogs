@@ -68,6 +68,9 @@ internal sealed class LogContext(LogEntry entry)
                     : $"{EventId.Id}:{EventId.Name}",
             "Scopes" => string.Join(" => ", Scopes),
             "Caller" => Caller?.Render() ?? string.Empty,
+            "CallerFileName" => Caller?.FileName ?? string.Empty,
+            "CallerLineNumber" => Caller?.LineNumber.ToString(CultureInfo.InvariantCulture) ?? string.Empty,
+            "CallerMemberName" => Caller?.MemberName ?? string.Empty,
             "ThreadId" => ThreadId.HasValue
                 ? (string.IsNullOrWhiteSpace(format)
                     ? ThreadId.Value.ToString(CultureInfo.InvariantCulture)

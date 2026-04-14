@@ -28,7 +28,7 @@ public partial class App : Application
                     retainedFileTimeLimit: TimeSpan.FromDays(21))
                 .WriteTo.Console(target: ConsoleTarget.Debug)
                 .WriteTo.Event()
-                .WriteTo.Option(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff}|{UserName}|{Level:u5}|{ThreadId:D3}|{Caller}|{Message}")
+                .WriteTo.Option(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff}|{UserName}|{Level:u5}|{ThreadId:D3}|{CallerFileName}:{CallerLineNumber}|{CallerMemberName}|{Message}")
                 .LogDispatchBehavior.Async()
                 .MinimumLevel.Debug()
                 .CreateLogger();
