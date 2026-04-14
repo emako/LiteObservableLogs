@@ -352,6 +352,39 @@ public sealed class LiteObservableLogsTests
     }
 
     /// <summary>
+    /// Verifies size-based rolling (KB) increments {Count} even when time interval does not change.
+    /// </summary>
+    [Fact]
+    public void RollingSizeCreatesNewFileAndIncrementsCount()
+    {
+        using TempDirectory temp = new();
+        string payloadA = new('A', 700);
+        string payloadB = new('B', 700);
+
+        using (ObservableLoggerFacade logger = new LoggerConfiguration()
+            .WriteTo.File(
+                Path.Combine(temp.Path, "size_{Timestamp:yyyyMMddHHmm}_{Count:D5}.log"),
+                outputTemplate: "{Message}",
+                rollingInterval: RollingInterval.Infinite,
+                rollingSize: 1)
+            .UseDispatchBehavior(LogDispatchBehavior.Sync)
+            .UseOptions(options => options.TimestampProvider = static () => new DateTimeOffset(2026, 4, 10, 9, 0, 0, TimeSpan.Zero))
+            .CreateLogger())
+        {
+            logger.Information(payloadA);
+            logger.Information(payloadB);
+            logger.Flush();
+        }
+
+        string file1 = Path.Combine(temp.Path, "size_202604100900_00001.log");
+        string file2 = Path.Combine(temp.Path, "size_202604100900_00002.log");
+        Assert.True(File.Exists(file1));
+        Assert.True(File.Exists(file2));
+        Assert.Contains(payloadA, ReadAllTextShared(file1));
+        Assert.Contains(payloadB, ReadAllTextShared(file2));
+    }
+
+    /// <summary>
     /// Verifies restart continues writing to highest existing {Count} file instead of resetting to 1.
     /// </summary>
     [Fact]

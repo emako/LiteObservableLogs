@@ -205,7 +205,8 @@ public sealed class LoggerConfiguration
         string? outputTemplate,
         RollingInterval rollingInterval,
         int? retainedFileCountLimit,
-        TimeSpan? retainedFileTimeLimit)
+        TimeSpan? retainedFileTimeLimit,
+        long rollingSize = 0)
     {
         if (string.IsNullOrWhiteSpace(path))
         {
@@ -225,6 +226,7 @@ public sealed class LoggerConfiguration
         _options.FileOutputTemplate = outputTemplate;
         _options.RetainedFileCountLimit = retainedFileCountLimit;
         _options.RetainedFileTimeLimit = retainedFileTimeLimit;
+        _options.RollingSize = rollingSize < 0 ? 0 : rollingSize;
 
         if (rollingInterval != RollingInterval.Infinite && !_options.FileNameTemplate.Contains("{Timestamp:", StringComparison.Ordinal))
         {
@@ -292,16 +294,18 @@ public sealed class LoggerConfiguration
         }
 
         /// <summary>
-        /// Configures file output path, optional line template, rolling interval, and retention limits (Serilog-compatible signature).
+        /// Configures file output path, optional line template, rolling interval, retention limits,
+        /// and size rolling threshold in KB (0 disables size rolling).
         /// </summary>
         public LoggerConfiguration File(
             string path,
             string? outputTemplate = null,
             RollingInterval rollingInterval = RollingInterval.Infinite,
             int? retainedFileCountLimit = null,
-            TimeSpan? retainedFileTimeLimit = null)
+            TimeSpan? retainedFileTimeLimit = null,
+            long rollingSize = 0L)
         {
-            return _owner.SetWriteToFileCompatibility(path, outputTemplate, rollingInterval, retainedFileCountLimit, retainedFileTimeLimit);
+            return _owner.SetWriteToFileCompatibility(path, outputTemplate, rollingInterval, retainedFileCountLimit, retainedFileTimeLimit, rollingSize);
         }
 
         /// <summary>Mirrors formatted lines to console or debug output.</summary>

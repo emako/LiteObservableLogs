@@ -26,7 +26,8 @@ public partial class App : Application
                 .WriteTo.File(logFile,
                     rollingInterval: RollingInterval.Day,
                     retainedFileCountLimit: 31,
-                    retainedFileTimeLimit: TimeSpan.FromDays(21))
+                    retainedFileTimeLimit: TimeSpan.FromDays(21),
+                    rollingSize: 1024L) // 1024 KB = 1 MB
                 .WriteTo.Console(target: ConsoleTarget.Debug)
                 .WriteTo.Event()
                 .WriteTo.Option(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff}|{UserName}|{Level:u5}|{ThreadId:D3}|{CallerFileName}:{CallerLineNumber}|{CallerMemberName}|{Message}{NewLine}{StackFrames}")

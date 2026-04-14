@@ -13,6 +13,8 @@ namespace LiteObservableLogs.Internal;
 internal sealed class ObservableFileWriter : IDisposable
 {
     private static readonly Regex TemplateTokenRegex = new(@"\{(?<name>[A-Za-z0-9_]+)(:(?<format>[^}]+))?\}", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    private static readonly UTF8Encoding Utf8NoBom = new(encoderShouldEmitUTF8Identifier: false);
+    private static readonly int NewLineByteCount = Utf8NoBom.GetByteCount(Environment.NewLine);
 
     private readonly ObservableLoggerOptions _options;
     private readonly object _syncRoot = new();
@@ -24,6 +26,7 @@ internal sealed class ObservableFileWriter : IDisposable
     private DateTimeOffset? _currentPeriodStart;
     private int _currentRollingCount = 1;
     private bool _rollingCountInitialized;
+    private long _currentFileLengthBytes;
 
     /// <summary>
     /// Prepares regex helpers derived from <see cref="ObservableLoggerOptions.FileNameTemplate"/> for retention and rolling count.
@@ -56,8 +59,9 @@ internal sealed class ObservableFileWriter : IDisposable
     {
         lock (_syncRoot)
         {
-            EnsureWriter(timestamp);
+            EnsureWriter(timestamp, message);
             _writer!.WriteLine(message);
+            _currentFileLengthBytes += GetEstimatedWriteBytes(message);
         }
     }
 
@@ -87,11 +91,16 @@ internal sealed class ObservableFileWriter : IDisposable
     }
 
     /// <summary>Creates or rotates the underlying <see cref="StreamWriter"/> when the target path changes.</summary>
-    private void EnsureWriter(DateTimeOffset timestamp)
+    private void EnsureWriter(DateTimeOffset timestamp, string pendingMessage)
     {
         Directory.CreateDirectory(_options.LogFolder);
         InitializeRollingCountFromExistingFiles();
-        UpdateRollingState(timestamp);
+        UpdateRollingStateByInterval(timestamp);
+        if (ShouldRollBySize(pendingMessage))
+        {
+            _currentRollingCount++;
+        }
+
         string filePath = Path.Combine(_options.LogFolder, ResolveFileName(timestamp, _currentRollingCount));
 
         if (string.Equals(filePath, _currentFilePath, StringComparison.OrdinalIgnoreCase) && _writer != null)
@@ -104,12 +113,13 @@ internal sealed class ObservableFileWriter : IDisposable
         _writer?.Dispose();
 
         FileStream stream = new(filePath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
-        _writer = new StreamWriter(stream, new UTF8Encoding(false))
+        _writer = new StreamWriter(stream, Utf8NoBom)
         {
             AutoFlush = false,
         };
 
         _currentFilePath = filePath;
+        _currentFileLengthBytes = stream.Length;
         CleanupOldFiles();
     }
 
@@ -196,7 +206,7 @@ internal sealed class ObservableFileWriter : IDisposable
     }
 
     /// <summary>Bumps the rolling counter when the calendar period advances.</summary>
-    private void UpdateRollingState(DateTimeOffset timestamp)
+    private void UpdateRollingStateByInterval(DateTimeOffset timestamp)
     {
         DateTimeOffset currentPeriod = GetPeriodStart(timestamp);
         if (_currentPeriodStart == null)
@@ -210,6 +220,40 @@ internal sealed class ObservableFileWriter : IDisposable
             _currentPeriodStart = currentPeriod;
             _currentRollingCount++;
         }
+    }
+
+    /// <summary>Rolls to next count when current file plus next write would exceed configured size limit.</summary>
+    private bool ShouldRollBySize(string pendingMessage)
+    {
+        if (_options.RollingSize <= 0 || _writer == null)
+        {
+            return false;
+        }
+
+        long sizeLimitBytes = _options.RollingSize * 1024L;
+        if (sizeLimitBytes <= 0)
+        {
+            return false;
+        }
+
+        long estimatedBytes = GetEstimatedWriteBytes(pendingMessage);
+        if (estimatedBytes <= 0)
+        {
+            return false;
+        }
+
+        // Avoid rolling an empty/new file repeatedly when a single large message exceeds the threshold.
+        if (_currentFileLengthBytes == 0)
+        {
+            return false;
+        }
+
+        return _currentFileLengthBytes + estimatedBytes > sizeLimitBytes;
+    }
+
+    private static int GetEstimatedWriteBytes(string message)
+    {
+        return Utf8NoBom.GetByteCount(message) + NewLineByteCount;
     }
 
     /// <summary>Maps an instant to the start of the configured <see cref="RollingInterval"/> period.</summary>

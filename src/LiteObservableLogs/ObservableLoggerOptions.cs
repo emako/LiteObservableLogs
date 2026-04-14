@@ -31,6 +31,12 @@ public sealed class ObservableLoggerOptions
     public RollingInterval RollingInterval { get; set; } = RollingInterval.Infinite;
 
     /// <summary>
+    /// Gets or sets size-based rolling threshold in KB.
+    /// 0 means disabled (default).
+    /// </summary>
+    public long RollingSize { get; set; }
+
+    /// <summary>
     /// Gets or sets the fallback category name used when no category is provided.
     /// </summary>
     public string DefaultCategoryName { get; set; } = nameof(LiteObservableLogs);
@@ -126,6 +132,7 @@ public sealed class ObservableLoggerOptions
             FileName = FileName,
             FileNameTemplate = FileNameTemplate,
             RollingInterval = RollingInterval,
+            RollingSize = RollingSize,
             DefaultCategoryName = DefaultCategoryName,
             MinLevel = MinLevel,
             LoggerType = LoggerType,
