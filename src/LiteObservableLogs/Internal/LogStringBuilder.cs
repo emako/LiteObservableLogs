@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace LiteObservableLogs.Internal;
@@ -9,7 +10,7 @@ namespace LiteObservableLogs.Internal;
 /// <summary>
 /// Materialized view of a log entry used by output-template rendering.
 /// </summary>
-internal sealed class LogContext(LogEntry entry)
+internal sealed class LogStringBuilder(LogEntry entry)
 {
     private static readonly Regex TemplateTokenRegex = new(@"\{(?<name>[A-Za-z0-9_]+)(:(?<format>[^}]+))?\}", RegexOptions.Compiled | RegexOptions.CultureInvariant);
     private static readonly string HostUserName = Environment.UserName;
@@ -184,5 +185,71 @@ internal sealed class LogContext(LogEntry entry)
         }
 
         return value;
+    }
+
+    /// <summary>
+    /// Converts a log entry into the legacy pipe-delimited default output.
+    /// </summary>
+    public static string RenderFallback(LogEntry entry, ObservableLoggerOptions options)
+    {
+        StringBuilder sb = new();
+
+        sb.Append(entry.Level switch
+        {
+            LogLevel.Trace => "TRACE",
+            LogLevel.Debug => "DEBUG",
+            LogLevel.Information => "INFO",
+            LogLevel.Warning => "WARN",
+            LogLevel.Error => "ERROR",
+            LogLevel.Critical => "FATAL",
+            _ => "NONE",
+        }).Append('|').Append(entry.Timestamp.ToString("yyyy-MM-dd|HH:mm:ss.fff"));
+
+        if (options.IncludeCategory)
+        {
+            sb.Append('|').Append(Sanitize(entry.Category));
+        }
+
+        if (options.IncludeEventId && entry.EventId.Id != 0)
+        {
+            sb.Append('|').Append("EventId=").Append(entry.EventId.Id);
+            if (!string.IsNullOrWhiteSpace(entry.EventId.Name))
+            {
+                sb.Append('(').Append(Sanitize(entry.EventId.Name!)).Append(')');
+            }
+        }
+
+        if (options.IncludeScopes && entry.Scopes.Count > 0)
+        {
+            sb.Append('|').Append("Scopes=").Append(Sanitize(string.Join(" => ", entry.Scopes)));
+        }
+
+        if (options.IncludeCallerInfo && entry.Caller is CallerInfo caller)
+        {
+            sb.Append('|').Append(Sanitize(caller.Render()));
+        }
+
+        sb.Append('|').Append(Sanitize(entry.Message));
+
+        if (entry.Exception != null)
+        {
+            sb.Append('|').Append("Exception=").Append(Sanitize(entry.Exception.ToString()));
+        }
+
+        return sb.ToString();
+
+        // Escapes line breaks so every entry stays single-line in the target file.
+        static string Sanitize(string? value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return string.Empty;
+            }
+
+            return value!
+                .Replace("\r\n", "\\n")
+                .Replace("\n", "\\n")
+                .Replace("\r", string.Empty);
+        }
     }
 }
