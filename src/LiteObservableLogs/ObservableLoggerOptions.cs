@@ -49,7 +49,7 @@ public sealed class ObservableLoggerOptions
     /// <summary>
     /// Gets or sets how entries are dispatched to disk.
     /// </summary>
-    public LogDispatchBehavior LoggerType { get; set; } = LogDispatchBehavior.Async;
+    public LogDispatcher LogDispatcher { get; set; } = LogDispatcher.Async;
 
     /// <summary>
     /// Gets or sets whether active logging scopes should be rendered.
@@ -135,7 +135,7 @@ public sealed class ObservableLoggerOptions
             RollingSize = RollingSize,
             DefaultCategoryName = DefaultCategoryName,
             MinLevel = MinLevel,
-            LoggerType = LoggerType,
+            LogDispatcher = LogDispatcher,
             IncludeScopes = IncludeScopes,
             IncludeCallerInfo = IncludeCallerInfo,
             IncludeCategory = IncludeCategory,

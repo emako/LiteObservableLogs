@@ -20,7 +20,7 @@ public sealed class LiteObservableLogsTests
         using TempDirectory temp = new();
         using (ObservableLoggerFacade logger = LoggerConfiguration.CreateDefault()
             .WriteToFile(temp.Path, "sync.log")
-            .UseDispatchBehavior(LogDispatchBehavior.Sync)
+            .UseDispatcher(LogDispatcher.Sync)
             .UseLevel(LogLevel.Information)
             .UseCategory("SyncCategory")
             .CreateLogger())
@@ -48,7 +48,7 @@ public sealed class LiteObservableLogsTests
         string filePath = Path.Combine(temp.Path, "immediate.log");
         using ObservableLoggerFacade logger = LoggerConfiguration.CreateDefault()
             .WriteToFile(temp.Path, "immediate.log")
-            .LogDispatchBehavior.Sync()
+            .Dispatcher.Sync()
             .UseLevel(LogLevel.Information)
             .CreateLogger();
 
@@ -69,7 +69,7 @@ public sealed class LiteObservableLogsTests
         {
             LogFolder = temp.Path,
             FileName = "scope.log",
-            LoggerType = LogDispatchBehavior.Sync,
+            LogDispatcher = LogDispatcher.Sync,
             IncludeScopes = true,
         }))
         using (ILoggerFactory factory = LoggerFactory.Create(builder => builder.AddProvider(provider)))
@@ -98,7 +98,7 @@ public sealed class LiteObservableLogsTests
         using TempDirectory temp = new();
         Log.Logger = LoggerConfiguration.CreateDefault()
             .WriteToFile(temp.Path, "static.log")
-            .UseDispatchBehavior(LogDispatchBehavior.Async)
+            .UseDispatcher(LogDispatcher.Async)
             .UseLevel(LogLevel.Trace)
             .UseCategory("StaticCategory")
             .CreateLogger();
@@ -126,7 +126,7 @@ public sealed class LiteObservableLogsTests
         using TempDirectory temp = new();
         using (ObservableLoggerFacade logger = LoggerConfiguration.CreateDefault()
             .WriteToFile(temp.Path, "exception.log")
-            .UseDispatchBehavior(LogDispatchBehavior.Sync)
+            .UseDispatcher(LogDispatcher.Sync)
             .UseCategory("ExceptionCategory")
             .CreateLogger())
         {
@@ -153,7 +153,7 @@ public sealed class LiteObservableLogsTests
             .WriteTo.File(
                 Path.Combine(temp.Path, "templated.log"),
                 outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss}] [{Level:u3}] {SourceContext}{NewLine}{Message}{NewLine}{Exception}")
-            .UseDispatchBehavior(LogDispatchBehavior.Sync)
+            .UseDispatcher(LogDispatcher.Sync)
             .UseCategory("TemplateCategory")
             .MinimumLevel.Debug()
             .CreateLogger())
@@ -188,7 +188,7 @@ public sealed class LiteObservableLogsTests
             using ObservableLoggerFacade logger = new LoggerConfiguration()
                 .WriteTo.Console("CONSOLE|{Level:u3}|{SourceContext}|{Message}")
                 .ObserveTo.Event("EVENT|{Level:u3}|{SourceContext}|{Message}")
-                .UseDispatchBehavior(LogDispatchBehavior.Sync)
+                .UseDispatcher(LogDispatcher.Sync)
                 .UseCategory("ConsoleEventCategory")
                 .MinimumLevel.Information()
                 .CreateLogger();
@@ -230,7 +230,7 @@ public sealed class LiteObservableLogsTests
                 .WriteTo.File(Path.Combine(temp.Path, "global.log"))
                 .WriteTo.Console()
                 .ObserveTo.Event()
-                .LogDispatchBehavior.Sync()
+                .Dispatcher.Sync()
                 .MinimumLevel.Information()
                 .CreateLogger();
 
@@ -263,7 +263,7 @@ public sealed class LiteObservableLogsTests
         {
             using ObservableLoggerFacade logger = new LoggerConfiguration()
                 .WriteTo.Console("DBG|{Level:u3}|{Message}", target: ConsoleTarget.Debug)
-                .UseDispatchBehavior(LogDispatchBehavior.Sync)
+                .UseDispatcher(LogDispatcher.Sync)
                 .MinimumLevel.Information()
                 .CreateLogger();
 
@@ -297,7 +297,7 @@ public sealed class LiteObservableLogsTests
             using ObservableLoggerFacade logger = new LoggerConfiguration()
                 .WriteTo.Console("ASYNC_CONSOLE|{Message}")
                 .ObserveTo.Event("ASYNC_EVENT|{Message}")
-                .LogDispatchBehavior.Async()
+                .Dispatcher.Async()
                 .MinimumLevel.Information()
                 .CreateLogger();
 
@@ -332,7 +332,7 @@ public sealed class LiteObservableLogsTests
                 Path.Combine(temp.Path, "rolling_{Timestamp:yyyyMMddHHmm}_{Count:D5}.log"),
                 outputTemplate: "{Message}",
                 rollingInterval: RollingInterval.Minute)
-            .UseDispatchBehavior(LogDispatchBehavior.Sync)
+            .UseDispatcher(LogDispatcher.Sync)
             .UseOptions(options => options.TimestampProvider = clock.Next)
             .CreateLogger())
         {
@@ -367,7 +367,7 @@ public sealed class LiteObservableLogsTests
                 outputTemplate: "{Message}",
                 rollingInterval: RollingInterval.Infinite,
                 rollingSize: 1)
-            .UseDispatchBehavior(LogDispatchBehavior.Sync)
+            .UseDispatcher(LogDispatcher.Sync)
             .UseOptions(options => options.TimestampProvider = static () => new DateTimeOffset(2026, 4, 10, 9, 0, 0, TimeSpan.Zero))
             .CreateLogger())
         {
@@ -401,7 +401,7 @@ public sealed class LiteObservableLogsTests
                 Path.Combine(temp.Path, "observable_{Timestamp:yyyyMMdd}_{Count:D5}.log"),
                 outputTemplate: "{Message}",
                 rollingInterval: RollingInterval.Day)
-            .LogDispatchBehavior.Sync()
+            .Dispatcher.Sync()
             .UseOptions(options => options.TimestampProvider = static () => new DateTimeOffset(2026, 4, 10, 9, 0, 0, TimeSpan.Zero))
             .CreateLogger())
         {
@@ -437,7 +437,7 @@ public sealed class LiteObservableLogsTests
                 rollingInterval: RollingInterval.Minute,
                 retainedFileCountLimit: 2,
                 retainedFileTimeLimit: TimeSpan.FromDays(1))
-            .UseDispatchBehavior(LogDispatchBehavior.Sync)
+            .UseDispatcher(LogDispatcher.Sync)
             .UseOptions(options => options.TimestampProvider = clock.Next)
             .CreateLogger())
         {
@@ -464,7 +464,7 @@ public sealed class LiteObservableLogsTests
             .WriteTo.File(
                 Path.Combine(temp.Path, "u3.log"),
                 outputTemplate: "{Level:u3}|{Message}")
-            .UseDispatchBehavior(LogDispatchBehavior.Sync)
+            .UseDispatcher(LogDispatcher.Sync)
             .MinimumLevel.Trace()
             .CreateLogger())
         {
@@ -496,7 +496,7 @@ public sealed class LiteObservableLogsTests
         string filePath = Path.Combine(temp.Path, "meta.log");
         using ObservableLoggerFacade logger = new LoggerConfiguration()
             .WriteTo.File(filePath)
-            .UseDispatchBehavior(LogDispatchBehavior.Sync)
+            .UseDispatcher(LogDispatcher.Sync)
             .MinimumLevel.Information()
             .CreateLogger();
 

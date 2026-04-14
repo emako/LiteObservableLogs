@@ -33,7 +33,7 @@ internal sealed class ObservableLogSink : IDisposable
     /// </summary>
     public bool IsEnabled(LogLevel level)
     {
-        if (_disposed || _options.LoggerType == LogDispatchBehavior.Silent)
+        if (_disposed || _options.LogDispatcher == LogDispatcher.Silent)
         {
             return false;
         }
@@ -74,7 +74,7 @@ internal sealed class ObservableLogSink : IDisposable
             resolvedCaller,
             stackFrames);
 
-        if (_options.LoggerType == LogDispatchBehavior.Async)
+        if (_options.LogDispatcher == LogDispatcher.Async)
         {
             // In async mode, keep caller-thread work minimal: only collect snapshot data,
             // enqueue, and let the background worker perform all formatting/output steps.
@@ -118,13 +118,13 @@ internal sealed class ObservableLogSink : IDisposable
     /// <summary>Selects silent, synchronous, or asynchronous dispatch and wires secondary-output callbacks.</summary>
     private IObservableLogDispatcher CreateDispatcher()
     {
-        if (_options.LoggerType == LogDispatchBehavior.Silent)
+        if (_options.LogDispatcher == LogDispatcher.Silent)
         {
             return new NoneLogDispatcher();
         }
 
         ObservableFileWriter writer = new(_options);
-        return _options.LoggerType == LogDispatchBehavior.Sync
+        return _options.LogDispatcher == LogDispatcher.Sync
             ? new SyncLogDispatcher(writer)
             : new AsyncLogDispatcher(writer, RenderOutputs, DispatchSecondaryTargets);
     }

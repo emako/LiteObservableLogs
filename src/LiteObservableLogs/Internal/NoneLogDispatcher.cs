@@ -4,7 +4,7 @@ namespace LiteObservableLogs.Internal;
 #pragma warning disable IDE0060 // Remove unused parameter
 
 /// <summary>
-/// No-op dispatcher used when <see cref="LogDispatchBehavior.Silent"/> is selected.
+/// No-op dispatcher used when <see cref="LogDispatcher.Silent"/> is selected.
 /// </summary>
 internal sealed class NoneLogDispatcher : IObservableLogDispatcher
 {

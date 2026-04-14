@@ -13,7 +13,7 @@ public sealed class LoggerConfiguration
     private readonly WriteToConfiguration _writeTo;
     private readonly ObserveToConfiguration _observeTo;
     private readonly MinimumLevelConfiguration _minimumLevel;
-    private readonly LogDispatchBehaviorConfiguration _logDispatchBehavior;
+    private readonly DispatcherConfiguration _dispatcher;
     private bool _loggerCreated;
 
     /// <summary>
@@ -24,7 +24,7 @@ public sealed class LoggerConfiguration
         _writeTo = new WriteToConfiguration(this);
         _observeTo = new ObserveToConfiguration(this);
         _minimumLevel = new MinimumLevelConfiguration(this);
-        _logDispatchBehavior = new LogDispatchBehaviorConfiguration(this);
+        _dispatcher = new DispatcherConfiguration(this);
     }
 
     /// <summary>
@@ -53,14 +53,14 @@ public sealed class LoggerConfiguration
     /// <summary>
     /// Provides Serilog-style logger type configuration entry.
     /// </summary>
-    public LogDispatchBehaviorConfiguration LogDispatchBehavior => _logDispatchBehavior;
+    public DispatcherConfiguration Dispatcher => _dispatcher;
 
     /// <summary>
     /// Sets how log records are dispatched to storage.
     /// </summary>
-    public LoggerConfiguration UseDispatchBehavior(LogDispatchBehavior type = LiteObservableLogs.LogDispatchBehavior.Async)
+    public LoggerConfiguration UseDispatcher(LogDispatcher type = LogDispatcher.Async)
     {
-        _options.LoggerType = type;
+        _options.LogDispatcher = type;
         return this;
     }
 
@@ -168,7 +168,7 @@ public sealed class LoggerConfiguration
     /// </summary>
     public ObservableLoggerFacade CreateSyncLogger(string? categoryName = null)
     {
-        _options.LoggerType = LiteObservableLogs.LogDispatchBehavior.Sync;
+        _options.LogDispatcher = LogDispatcher.Sync;
         return CreateLogger(categoryName ?? _options.DefaultCategoryName);
     }
 
@@ -177,7 +177,7 @@ public sealed class LoggerConfiguration
     /// </summary>
     public ObservableLoggerFacade CreateAsyncLogger(string? categoryName = null)
     {
-        _options.LoggerType = LiteObservableLogs.LogDispatchBehavior.Async;
+        _options.LogDispatcher = LogDispatcher.Async;
         return CreateLogger(categoryName ?? _options.DefaultCategoryName);
     }
 
@@ -213,7 +213,7 @@ public sealed class LoggerConfiguration
         RollingInterval rollingInterval,
         int? retainedFileCountLimit,
         TimeSpan? retainedFileTimeLimit,
-        long rollingSize = 0L)
+        long rollingSize = 0)
     {
         if (string.IsNullOrWhiteSpace(path))
         {
@@ -310,7 +310,7 @@ public sealed class LoggerConfiguration
             RollingInterval rollingInterval = RollingInterval.Infinite,
             int? retainedFileCountLimit = null,
             TimeSpan? retainedFileTimeLimit = null,
-            long rollingSize = 0L)
+            long rollingSize = 0)
         {
             return _owner.SetWriteToFileCompatibility(path, outputTemplate, rollingInterval, retainedFileCountLimit, retainedFileTimeLimit, rollingSize);
         }
@@ -405,11 +405,11 @@ public sealed class LoggerConfiguration
     /// <summary>
     /// Serilog-style logger dispatch type configuration wrapper.
     /// </summary>
-    public sealed class LogDispatchBehaviorConfiguration
+    public sealed class DispatcherConfiguration
     {
         private readonly LoggerConfiguration _owner;
 
-        internal LogDispatchBehaviorConfiguration(LoggerConfiguration owner)
+        internal DispatcherConfiguration(LoggerConfiguration owner)
         {
             _owner = owner;
         }
@@ -417,19 +417,19 @@ public sealed class LoggerConfiguration
         /// <summary>Write log lines on the caller thread.</summary>
         public LoggerConfiguration Sync()
         {
-            return _owner.UseDispatchBehavior(LiteObservableLogs.LogDispatchBehavior.Sync);
+            return _owner.UseDispatcher(LogDispatcher.Sync);
         }
 
         /// <summary>Write log lines on a background worker (default).</summary>
         public LoggerConfiguration Async()
         {
-            return _owner.UseDispatchBehavior(LiteObservableLogs.LogDispatchBehavior.Async);
+            return _owner.UseDispatcher(LogDispatcher.Async);
         }
 
         /// <summary>Disable all log output while keeping the API usable.</summary>
         public LoggerConfiguration Silent()
         {
-            return _owner.UseDispatchBehavior(LiteObservableLogs.LogDispatchBehavior.Silent);
+            return _owner.UseDispatcher(LogDispatcher.Silent);
         }
     }
 }

@@ -30,7 +30,7 @@ public partial class App : Application
                 .WriteTo.Console(target: ConsoleTarget.Debug)
                 .ObserveTo.Event()
                 .WriteTo.Option(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff}|{UserName}|{Level:u5}|{ThreadId:d3}|{CallerFileName}:{CallerLineNumber}|{CallerMemberName}|{Message}{NewLine}{StackFrames}")
-                .LogDispatchBehavior.Async()
+                .Dispatcher.Async()
                 .MinimumLevel.Debug()
                 .CreateLogger();
 
