@@ -65,9 +65,19 @@
                         Command="{Binding LogCriticalCommand}"
                         Content="LogCritical" />
                     <Button
+                        Margin="0,0,0,8"
                         Padding="12,8"
                         Command="{Binding LogExceptionCommand}"
                         Content="LogException" />
+                    <Button
+                        Margin="0,0,0,8"
+                        Padding="12,8"
+                        Command="{Binding OpenCurrentLogDirectoryCommand}"
+                        Content="Open Current Log Directory" />
+                    <Button
+                        Padding="12,8"
+                        Command="{Binding OpenCurrentLogDirectoryAndSelectCommand}"
+                        Content="Open Log Directory And Select Current Log" />
                 </StackPanel>
             </ScrollViewer>
 

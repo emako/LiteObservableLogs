@@ -1,5 +1,4 @@
-﻿using LiteObservableLogs.Providers;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.IO;
@@ -20,22 +19,21 @@ public partial class App : Application
         {
             string logFolder = Path.Combine(AppContext.BaseDirectory, "log");
             Directory.CreateDirectory(logFolder);
-            string logFile = Path.Combine(logFolder, "observable_{Timestamp:yyyyMMdd}_{Count:D5}.log");
+            string logFile = Path.Combine(logFolder, "observable_{Timestamp:yyyyMMdd}_{Count:d5}.log");
 
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.File(logFile,
                     rollingInterval: RollingInterval.Day,
                     retainedFileCountLimit: 31,
                     retainedFileTimeLimit: TimeSpan.FromDays(21),
-                    rollingSize: 1024L) // 1024 KB = 1 MB
+                    rollingSize: 10240L) // 1024 KB = 1 MB
                 .WriteTo.Console(target: ConsoleTarget.Debug)
                 .WriteTo.Event()
-                .WriteTo.Option(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff}|{UserName}|{Level:u5}|{ThreadId:D3}|{CallerFileName}:{CallerLineNumber}|{CallerMemberName}|{Message}{NewLine}{StackFrames}")
+                .WriteTo.Option(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff}|{UserName}|{Level:u5}|{ThreadId:d3}|{CallerFileName}:{CallerLineNumber}|{CallerMemberName}|{Message}{NewLine}{StackFrames}")
                 .LogDispatchBehavior.Async()
                 .MinimumLevel.Debug()
                 .CreateLogger();
 
-            //services.AddLogging(c => c.AddSerilog());
             services.AddSingleton<MainViewModel>();
         })
         .Build();
