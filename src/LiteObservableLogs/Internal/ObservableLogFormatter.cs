@@ -6,12 +6,19 @@ namespace LiteObservableLogs.Internal;
 internal sealed class ObservableLogFormatter(ObservableLoggerOptions options)
 {
     private readonly ObservableLoggerOptions _options = options;
-
-    private readonly bool _usesAnyTemplate =
-        HasTemplate(options.FileOutputTemplate)
+    private readonly bool _usesAnyTemplate = HasTemplate(options.FileOutputTemplate)
         || HasTemplate(options.ConsoleOutputTemplate)
         || HasTemplate(options.EventOutputTemplate)
         || HasTemplate(options.OutputTemplate);
+    private readonly bool _requiresStackFrames = ContainsStackFramesToken(options.FileOutputTemplate)
+        || ContainsStackFramesToken(options.ConsoleOutputTemplate)
+        || ContainsStackFramesToken(options.EventOutputTemplate)
+        || ContainsStackFramesToken(options.OutputTemplate);
+
+    /// <summary>
+    /// Indicates whether any configured template references <c>{StackFrames}</c>.
+    /// </summary>
+    public bool RequiresStackFrames => _requiresStackFrames;
 
     /// <summary>
     /// Formats file output using the configured file template when present.
@@ -62,5 +69,11 @@ internal sealed class ObservableLogFormatter(ObservableLoggerOptions options)
     private static bool HasTemplate(string? template)
     {
         return !string.IsNullOrWhiteSpace(template);
+    }
+
+    private static bool ContainsStackFramesToken(string? template)
+    {
+        return !string.IsNullOrWhiteSpace(template)
+            && template!.IndexOf("{StackFrames", System.StringComparison.Ordinal) >= 0;
     }
 }

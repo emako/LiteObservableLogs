@@ -18,7 +18,8 @@ internal sealed class LogEntry(
     string message,
     Exception? exception,
     IReadOnlyList<string> scopes,
-    CallerInfo? caller)
+    CallerInfo? caller,
+    string? stackFrames)
 {
     /// <summary>Event time from <see cref="ObservableLoggerOptions.TimestampProvider"/>.</summary>
     public DateTimeOffset Timestamp { get; } = timestamp;
@@ -43,4 +44,9 @@ internal sealed class LogEntry(
 
     /// <summary>Optional caller file, line, member, and thread metadata.</summary>
     public CallerInfo? Caller { get; } = caller;
+
+    /// <summary>
+    /// Stack trace captured at log-call time (outside this library), used by <c>{StackFrames}</c>.
+    /// </summary>
+    public string StackFrames { get; } = stackFrames ?? string.Empty;
 }

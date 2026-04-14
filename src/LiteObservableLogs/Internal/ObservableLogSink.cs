@@ -59,6 +59,9 @@ internal sealed class ObservableLogSink : IDisposable
         }
 
         CallerInfo? resolvedCaller = _options.IncludeCallerInfo ? caller ?? CallerInfoResolver.Resolve() : null;
+        string? stackFrames = _formatter.RequiresStackFrames
+            ? StackFramesResolver.Resolve()
+            : null;
         // Capture timestamp once so formatted message and file writer stay aligned.
         LogEntry entry = new(
             _options.TimestampProvider(),
@@ -68,7 +71,8 @@ internal sealed class ObservableLogSink : IDisposable
             message,
             exception,
             scopes ?? [],
-            resolvedCaller);
+            resolvedCaller,
+            stackFrames);
 
         if (_options.LoggerType == LogDispatchBehavior.Async)
         {

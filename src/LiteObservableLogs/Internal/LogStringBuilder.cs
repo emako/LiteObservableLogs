@@ -14,7 +14,7 @@ namespace LiteObservableLogs.Internal;
 /// Supported names include
 /// <c>Timestamp</c>, <c>Level</c> (with optional Serilog-style width/format tokens),
 /// <c>Message</c>, <c>Exception</c>, <c>NewLine</c>, <c>SourceContext</c> (category),
-/// <c>EventId</c>, <c>Scopes</c>, <c>Caller</c> (compact file:line,member),
+/// <c>EventId</c>, <c>Scopes</c>, <c>StackFrames</c>, <c>Caller</c> (compact file:line,member),
 /// <c>CallerFileName</c>, <c>CallerLineNumber</c>, <c>CallerMemberName</c>,
 /// <c>ThreadId</c>, and <c>UserName</c>.
 /// When the template omits <c>{Exception}</c>, exception text is appended to <c>Message</c> for backward compatibility.
@@ -80,6 +80,7 @@ internal sealed class LogStringBuilder(LogEntry entry)
                 ? Message
                 : Message + (Exception?.ToString() ?? string.Empty),
             "Exception" => Exception?.ToString() ?? string.Empty,
+            "StackFrames" => RenderStackFrames(Exception, entry.StackFrames),
             "NewLine" => Environment.NewLine,
             "SourceContext" => entry.Category,
             "EventId" => EventId.Id == 0 && string.IsNullOrWhiteSpace(EventId.Name)
@@ -88,6 +89,7 @@ internal sealed class LogStringBuilder(LogEntry entry)
                     ? EventId.Id.ToString(CultureInfo.InvariantCulture)
                     : $"{EventId.Id}:{EventId.Name}",
             "Scopes" => string.Join(" => ", Scopes),
+            "Caller" => Caller is CallerInfo caller ? RenderCaller(caller) : string.Empty,
             "CallerFileName" => Caller?.FileName ?? string.Empty,
             "CallerLineNumber" => Caller?.LineNumber.ToString(CultureInfo.InvariantCulture) ?? string.Empty,
             "CallerMemberName" => Caller?.MemberName ?? string.Empty,
@@ -99,6 +101,22 @@ internal sealed class LogStringBuilder(LogEntry entry)
             "UserName" => HostUserName,
             _ => string.Empty,
         };
+    }
+
+    private static string RenderStackFrames(Exception? exception, string stackFrames)
+    {
+        // Keep exception-compatible formatting when exception exists.
+        if (exception != null)
+        {
+            return exception.ToString();
+        }
+
+        return stackFrames;
+    }
+
+    private static string RenderCaller(CallerInfo caller)
+    {
+        return $"{caller.FileName}:{caller.LineNumber},{caller.MemberName}";
     }
 
     /// <summary>Maps <see cref="LogLevel"/> to display strings; supports Serilog-style width tokens (u3, w4, etc.).</summary>
@@ -246,7 +264,7 @@ internal sealed class LogStringBuilder(LogEntry entry)
 
         if (options.IncludeCallerInfo && entry.Caller is CallerInfo caller)
         {
-            sb.Append('|').Append(Sanitize(caller.FileName)).Append(':').Append(Sanitize(caller.LineNumber.ToString())).Append('-').Append(Sanitize(caller.MemberName));
+            sb.Append('|').Append(Sanitize(RenderCaller(caller)));
         }
 
         sb.Append('|').Append(Sanitize(entry.Message));
