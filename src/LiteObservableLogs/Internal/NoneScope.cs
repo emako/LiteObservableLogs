@@ -7,7 +7,9 @@ namespace LiteObservableLogs.Internal;
 /// </summary>
 internal sealed class NoneScope : IDisposable
 {
-    /// <summary>Shared instance for no-op scopes.</summary>
+    /// <summary>
+    /// Shared instance for no-op scopes.
+    /// </summary>
     public static NoneScope Instance { get; } = new();
 
     private NoneScope()

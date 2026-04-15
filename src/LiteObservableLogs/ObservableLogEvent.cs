@@ -20,23 +20,35 @@ public sealed class ObservableLogEvent(
     Exception? exception,
     string renderedText)
 {
-    /// <summary>Time of the log event.</summary>
+    /// <summary>
+    /// Time of the log event.
+    /// </summary>
     public DateTimeOffset Timestamp { get; } = timestamp;
 
-    /// <summary>Severity level.</summary>
+    /// <summary>
+    /// Severity level.
+    /// </summary>
     public LogLevel Level { get; } = level;
 
-    /// <summary>Logger category name.</summary>
+    /// <summary>
+    /// Logger category name.
+    /// </summary>
     public string Category { get; } = category;
 
-    /// <summary>Raw message text before per-sink formatting.</summary>
+    /// <summary>
+    /// Raw message text before per-sink formatting.
+    /// </summary>
     public string Message { get; } = message;
 
-    /// <summary>Exception passed to the logger, if any.</summary>
+    /// <summary>
+    /// Exception passed to the logger, if any.
+    /// </summary>
     public Exception? Exception { get; } = exception;
 
     /// <summary>
     /// Fully formatted line as it would appear for the event sink (console/file templates differ).
     /// </summary>
     public string RenderedText { get; } = renderedText;
+
+    public override string ToString() => RenderedText;
 }

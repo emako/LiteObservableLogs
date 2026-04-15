@@ -90,7 +90,9 @@ internal sealed class AsyncLogDispatcher : IObservableLogDispatcher
         _writer.Dispose();
     }
 
-    /// <summary>Background loop: dequeue, write, flush, then invoke secondary targets.</summary>
+    /// <summary>
+    /// Background loop: dequeue, write, flush, then invoke secondary targets.
+    /// </summary>
     private void ProcessQueue()
     {
         // ConsumingEnumerable blocks efficiently until data arrives or adding completes.

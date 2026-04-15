@@ -24,28 +24,44 @@ internal sealed class LogStringBuilder(LogEntry entry)
     private static readonly Regex TemplateTokenRegex = new(@"\{(?<name>[A-Za-z0-9_]+)(:(?<format>[^}]+))?\}", RegexOptions.Compiled | RegexOptions.CultureInvariant);
     private static readonly string HostUserName = Environment.UserName;
 
-    /// <summary>Entry timestamp.</summary>
+    /// <summary>
+    /// Entry timestamp.
+    /// </summary>
     public DateTimeOffset Timestamp { get; } = entry.Timestamp;
 
-    /// <summary>Entry severity.</summary>
+    /// <summary>
+    /// Entry severity.
+    /// </summary>
     public LogLevel Level { get; } = entry.Level;
 
-    /// <summary>Structured event id from the logging API.</summary>
+    /// <summary>
+    /// Structured event id from the logging API.
+    /// </summary>
     public EventId EventId { get; } = entry.EventId;
 
-    /// <summary>Rendered message body.</summary>
+    /// <summary>
+    /// Rendered message body.
+    /// </summary>
     public string Message { get; } = entry.Message;
 
-    /// <summary>Exception from the log call, if any.</summary>
+    /// <summary>
+    /// Exception from the log call, if any.
+    /// </summary>
     public Exception? Exception { get; } = entry.Exception;
 
-    /// <summary>Optional caller metadata.</summary>
+    /// <summary>
+    /// Optional caller metadata.
+    /// </summary>
     public CallerInfo? Caller { get; } = entry.Caller;
 
-    /// <summary>Managed thread id from caller resolution.</summary>
+    /// <summary>
+    /// Managed thread id from caller resolution.
+    /// </summary>
     public int? ThreadId { get; } = entry.Caller?.ThreadId;
 
-    /// <summary>Active scope chain at log time.</summary>
+    /// <summary>
+    /// Active scope chain at log time.
+    /// </summary>
     public IReadOnlyList<string> Scopes { get; } = entry.Scopes;
 
     /// <summary>
@@ -119,7 +135,9 @@ internal sealed class LogStringBuilder(LogEntry entry)
         return $"{caller.FileName}:{caller.LineNumber},{caller.MemberName}";
     }
 
-    /// <summary>Maps <see cref="LogLevel"/> to display strings; supports Serilog-style width tokens (u3, w4, etc.).</summary>
+    /// <summary>
+    /// Maps <see cref="LogLevel"/> to display strings; supports Serilog-style width tokens (u3, w4, etc.).
+    /// </summary>
     private string RenderLevel(string? format)
     {
         string value = Level switch

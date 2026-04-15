@@ -103,6 +103,11 @@ public sealed class ObservableLoggerOptions
     public string? EventOutputTemplate { get; set; }
 
     /// <summary>
+    /// Gets or sets the template used for callback observer text.
+    /// </summary>
+    public string? CallbackOutputTemplate { get; set; }
+
+    /// <summary>
     /// Gets callbacks invoked for each published <see cref="ObservableLogEvent"/>.
     /// </summary>
     public List<Action<ObservableLogEvent>> ObserveCallbacks { get; set; } = [];
@@ -152,6 +157,7 @@ public sealed class ObservableLoggerOptions
             ConsoleOutputTemplate = ConsoleOutputTemplate,
             PublishToEvent = PublishToEvent,
             EventOutputTemplate = EventOutputTemplate,
+            CallbackOutputTemplate = CallbackOutputTemplate,
             ObserveCallbacks = [.. ObserveCallbacks],
             OutputTemplate = OutputTemplate,
             RetainedFileCountLimit = RetainedFileCountLimit,

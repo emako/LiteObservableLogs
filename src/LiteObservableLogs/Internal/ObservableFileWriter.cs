@@ -90,7 +90,9 @@ internal sealed class ObservableFileWriter : IDisposable
         }
     }
 
-    /// <summary>Creates or rotates the underlying <see cref="StreamWriter"/> when the target path changes.</summary>
+    /// <summary>
+    /// Creates or rotates the underlying <see cref="StreamWriter"/> when the target path changes.
+    /// </summary>
     private void EnsureWriter(DateTimeOffset timestamp, string pendingMessage)
     {
         Directory.CreateDirectory(_options.LogFolder);
@@ -167,7 +169,9 @@ internal sealed class ObservableFileWriter : IDisposable
         }
     }
 
-    /// <summary>Applies template or fixed <see cref="ObservableLoggerOptions.FileName"/> rules.</summary>
+    /// <summary>
+    /// Applies template or fixed <see cref="ObservableLoggerOptions.FileName"/> rules.
+    /// </summary>
     private string ResolveFileName(DateTimeOffset timestamp, int count)
     {
         if (!string.IsNullOrWhiteSpace(_options.FileNameTemplate))
@@ -180,7 +184,9 @@ internal sealed class ObservableFileWriter : IDisposable
             : _options.FileName!;
     }
 
-    /// <summary>Expands <c>{Timestamp}</c> and <c>{Count}</c> placeholders in a file name template.</summary>
+    /// <summary>
+    /// Expands <c>{Timestamp}</c> and <c>{Count}</c> placeholders in a file name template.
+    /// </summary>
     private static string ApplyTemplate(string template, DateTimeOffset timestamp, int count)
     {
         return TemplateTokenRegex.Replace(template, match =>
@@ -205,7 +211,9 @@ internal sealed class ObservableFileWriter : IDisposable
         });
     }
 
-    /// <summary>Bumps the rolling counter when the calendar period advances.</summary>
+    /// <summary>
+    /// Bumps the rolling counter when the calendar period advances.
+    /// </summary>
     private void UpdateRollingStateByInterval(DateTimeOffset timestamp)
     {
         DateTimeOffset currentPeriod = GetPeriodStart(timestamp);
@@ -222,7 +230,9 @@ internal sealed class ObservableFileWriter : IDisposable
         }
     }
 
-    /// <summary>Rolls to next count when current file plus next write would exceed configured size limit.</summary>
+    /// <summary>
+    /// Rolls to next count when current file plus next write would exceed configured size limit.
+    /// </summary>
     private bool ShouldRollBySize(string pendingMessage)
     {
         if (_options.RollingSize <= 0 || _writer == null)
@@ -256,7 +266,9 @@ internal sealed class ObservableFileWriter : IDisposable
         return Utf8NoBom.GetByteCount(message) + NewLineByteCount;
     }
 
-    /// <summary>Maps an instant to the start of the configured <see cref="RollingInterval"/> period.</summary>
+    /// <summary>
+    /// Maps an instant to the start of the configured <see cref="RollingInterval"/> period.
+    /// </summary>
     private DateTimeOffset GetPeriodStart(DateTimeOffset timestamp)
     {
         return _options.RollingInterval switch
@@ -270,7 +282,9 @@ internal sealed class ObservableFileWriter : IDisposable
         };
     }
 
-    /// <summary>Deletes older files according to count and age limits, never deleting the active file.</summary>
+    /// <summary>
+    /// Deletes older files according to count and age limits, never deleting the active file.
+    /// </summary>
     private void CleanupOldFiles()
     {
         if (_options.RetainedFileCountLimit == null && _options.RetainedFileTimeLimit == null)
@@ -330,7 +344,9 @@ internal sealed class ObservableFileWriter : IDisposable
         }
     }
 
-    /// <summary>Whether a directory entry should participate in retention (matches template or fixed name rules).</summary>
+    /// <summary>
+    /// Whether a directory entry should participate in retention (matches template or fixed name rules).
+    /// </summary>
     private bool IsRetentionCandidate(FileInfo file)
     {
         if (string.IsNullOrWhiteSpace(_options.FileNameTemplate))
@@ -343,7 +359,9 @@ internal sealed class ObservableFileWriter : IDisposable
         return _retentionRegex?.IsMatch(file.Name) == true;
     }
 
-    /// <summary>Builds a regex that matches log files produced from the given template for safe cleanup.</summary>
+    /// <summary>
+    /// Builds a regex that matches log files produced from the given template for safe cleanup.
+    /// </summary>
     private static Regex? BuildRetentionRegex(string? template)
     {
         if (string.IsNullOrWhiteSpace(template))
@@ -385,7 +403,9 @@ internal sealed class ObservableFileWriter : IDisposable
         return new Regex(pattern.ToString(), RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
     }
 
-    /// <summary>Builds a regex that captures the numeric <c>{Count}</c> segment from existing file names.</summary>
+    /// <summary>
+    /// Builds a regex that captures the numeric <c>{Count}</c> segment from existing file names.
+    /// </summary>
     private static Regex? BuildCountExtractionRegex(string? template)
     {
         if (string.IsNullOrWhiteSpace(template))

@@ -265,7 +265,8 @@ public sealed class LiteObservableLogsTests
         };
 
         Log.Logger = new LoggerConfiguration()
-            .ObserveTo.Callback(callback)
+            .Global.OutputTemplate("GLOBAL_CB|{Message}")
+            .ObserveTo.Callback(callback, outputTemplate: null)
             .UseDispatcher(LogDispatcher.Sync)
             .MinimumLevel.Information()
             .CreateLogger();
@@ -277,7 +278,7 @@ public sealed class LiteObservableLogsTests
 
             Assert.Equal(1, callbackCount);
             Assert.NotNull(callbackEvent);
-            Assert.Contains("before-remove", callbackEvent!.RenderedText);
+            Assert.Equal("GLOBAL_CB|before-remove", callbackEvent!.RenderedText);
 
             bool removed = Log.Logger.RemoveCallback(callback);
             Assert.True(removed);

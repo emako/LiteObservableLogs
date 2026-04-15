@@ -25,10 +25,14 @@ internal sealed class ObservableLogSink : IDisposable
         _callbacks = [.. _options.ObserveCallbacks];
     }
 
-    /// <summary>Gets the configured log folder.</summary>
+    /// <summary>
+    /// Gets the configured log folder.
+    /// </summary>
     public string LogFolder => _options.LogFolder;
 
-    /// <summary>Gets the current active log file path, or <c>null</c> before first write.</summary>
+    /// <summary>
+    /// Gets the current active log file path, or <c>null</c> before first write.
+    /// </summary>
     public string? CurrentLogFilePath => _dispatcher.CurrentLogFilePath;
 
     /// <summary>
@@ -89,6 +93,7 @@ internal sealed class ObservableLogSink : IDisposable
         _dispatcher.Enqueue(entry, fileRendered, consoleRendered, eventRendered);
         WriteConsole(entry, consoleRendered);
         PublishEvent(entry, eventRendered);
+        PublishCallback(entry);
     }
 
     /// <summary>
@@ -104,7 +109,9 @@ internal sealed class ObservableLogSink : IDisposable
         _dispatcher.Flush();
     }
 
-    /// <summary>Removes a previously registered callback handler.</summary>
+    /// <summary>
+    /// Removes a previously registered callback handler.
+    /// </summary>
     public bool RemoveCallback(Action<ObservableLogEvent> callback)
     {
         if (callback == null)
@@ -132,7 +139,9 @@ internal sealed class ObservableLogSink : IDisposable
         _dispatcher.Dispose();
     }
 
-    /// <summary>Selects silent, synchronous, or asynchronous dispatch and wires secondary-output callbacks.</summary>
+    /// <summary>
+    /// Selects silent, synchronous, or asynchronous dispatch and wires secondary-output callbacks.
+    /// </summary>
     private IObservableLogDispatcher CreateDispatcher()
     {
         if (_options.LogDispatcher == LogDispatcher.Silent)
@@ -146,7 +155,9 @@ internal sealed class ObservableLogSink : IDisposable
             : new AsyncLogDispatcher(writer, RenderOutputs, DispatchSecondaryTargets);
     }
 
-    /// <summary>Renders sink outputs for file/console/event with one shared token builder.</summary>
+    /// <summary>
+    /// Renders sink outputs for file/console/event with one shared token builder.
+    /// </summary>
     private (string FileRendered, string? ConsoleRendered, string? EventRendered) RenderOutputs(LogEntry entry)
     {
         LogStringBuilder? sharedBuilder = _formatter.CreateSharedBuilder(entry);
@@ -160,14 +171,19 @@ internal sealed class ObservableLogSink : IDisposable
         return (fileRendered, consoleRendered, eventRendered);
     }
 
-    /// <summary>Invoked after async file writes to fan out to console and in-process events.</summary>
+    /// <summary>
+    /// Invoked after async file writes to fan out to console, events, and callbacks.
+    /// </summary>
     private void DispatchSecondaryTargets(LogEntry entry, string? consoleRendered, string? eventRendered)
     {
         WriteConsole(entry, consoleRendered);
         PublishEvent(entry, eventRendered);
+        PublishCallback(entry);
     }
 
-    /// <summary>Renders and writes to <see cref="Console"/> or <see cref="System.Diagnostics.Debug"/> when enabled.</summary>
+    /// <summary>
+    /// Renders and writes to <see cref="Console"/> or <see cref="System.Diagnostics.Debug"/> when enabled.
+    /// </summary>
     private void WriteConsole(LogEntry entry, string? rendered = null)
     {
         if (!_options.WriteToConsole)
@@ -185,7 +201,9 @@ internal sealed class ObservableLogSink : IDisposable
         Console.WriteLine(rendered);
     }
 
-    /// <summary>Raises <see cref="Log.Publish"/> with the event-template formatted line.</summary>
+    /// <summary>
+    /// Raises <see cref="Log.Publish"/> with the event-template formatted line.
+    /// </summary>
     private void PublishEvent(LogEntry entry, string? rendered = null)
     {
         if (!_options.PublishToEvent)
@@ -203,11 +221,12 @@ internal sealed class ObservableLogSink : IDisposable
             entry.Exception,
             rendered);
         Log.Publish(observableEvent);
-        DispatchCallbacks(observableEvent);
     }
 
-    /// <summary>Invokes registered callback observers while isolating subscriber failures.</summary>
-    private void DispatchCallbacks(ObservableLogEvent entry)
+    /// <summary>
+    /// Invokes ObserveTo callbacks with the event-template formatted payload.
+    /// </summary>
+    private void PublishCallback(LogEntry entry, string? rendered = null)
     {
         Action<ObservableLogEvent>[] callbacks;
         lock (_callbacksGate)
@@ -220,6 +239,26 @@ internal sealed class ObservableLogSink : IDisposable
             callbacks = [.. _callbacks];
         }
 
+        if (!_options.PublishToEvent)
+        {
+            return;
+        }
+
+        rendered ??= _formatter.FormatCallback(entry);
+        DispatchCallbacks(callbacks, new ObservableLogEvent(
+            entry.Timestamp,
+            entry.Level,
+            entry.Category,
+            entry.Message,
+            entry.Exception,
+            rendered));
+    }
+
+    /// <summary>
+    /// Invokes registered callback observers while isolating subscriber failures.
+    /// </summary>
+    private static void DispatchCallbacks(Action<ObservableLogEvent>[] callbacks, ObservableLogEvent entry)
+    {
         for (int i = 0; i < callbacks.Length; i++)
         {
             try

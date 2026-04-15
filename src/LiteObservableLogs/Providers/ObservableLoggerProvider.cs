@@ -25,10 +25,14 @@ public sealed class ObservableLoggerProvider : ILoggerProvider, ISupportExternal
         _sink = new ObservableLogSink(_options);
     }
 
-    /// <summary>Gets the configured log folder.</summary>
+    /// <summary>
+    /// Gets the configured log folder.
+    /// </summary>
     public string LogFolder => _sink.LogFolder;
 
-    /// <summary>Gets the current active log file path, or <c>null</c> before first write.</summary>
+    /// <summary>
+    /// Gets the current active log file path, or <c>null</c> before first write.
+    /// </summary>
     public string? CurrentLogFilePath => _sink.CurrentLogFilePath;
 
     /// <summary>

@@ -21,28 +21,44 @@ internal sealed class LogEntry(
     CallerInfo? caller,
     string? stackFrames)
 {
-    /// <summary>Event time from <see cref="ObservableLoggerOptions.TimestampProvider"/>.</summary>
+    /// <summary>
+    /// Event time from <see cref="ObservableLoggerOptions.TimestampProvider"/>.
+    /// </summary>
     public DateTimeOffset Timestamp { get; } = timestamp;
 
-    /// <summary>Microsoft log level for this entry.</summary>
+    /// <summary>
+    /// Microsoft log level for this entry.
+    /// </summary>
     public LogLevel Level { get; } = level;
 
-    /// <summary>Logger category (often source context or type name).</summary>
+    /// <summary>
+    /// Logger category (often source context or type name).
+    /// </summary>
     public string Category { get; } = category;
 
-    /// <summary>Optional structured event identifier from the logging API.</summary>
+    /// <summary>
+    /// Optional structured event identifier from the logging API.
+    /// </summary>
     public EventId EventId { get; } = eventId;
 
-    /// <summary>Rendered message text.</summary>
+    /// <summary>
+    /// Rendered message text.
+    /// </summary>
     public string Message { get; } = message;
 
-    /// <summary>Exception attached to the log call, if any.</summary>
+    /// <summary>
+    /// Exception attached to the log call, if any.
+    /// </summary>
     public Exception? Exception { get; } = exception;
 
-    /// <summary>Outer-to-inner scope labels captured at log time.</summary>
+    /// <summary>
+    /// Outer-to-inner scope labels captured at log time.
+    /// </summary>
     public IReadOnlyList<string> Scopes { get; } = scopes;
 
-    /// <summary>Optional caller file, line, member, and thread metadata.</summary>
+    /// <summary>
+    /// Optional caller file, line, member, and thread metadata.
+    /// </summary>
     public CallerInfo? Caller { get; } = caller;
 
     /// <summary>

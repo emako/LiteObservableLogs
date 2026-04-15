@@ -9,10 +9,12 @@ internal sealed class ObservableLogFormatter(ObservableLoggerOptions options)
     private readonly bool _usesAnyTemplate = HasTemplate(options.FileOutputTemplate)
         || HasTemplate(options.ConsoleOutputTemplate)
         || HasTemplate(options.EventOutputTemplate)
+        || HasTemplate(options.CallbackOutputTemplate)
         || HasTemplate(options.OutputTemplate);
     private readonly bool _requiresStackFrames = ContainsStackFramesToken(options.FileOutputTemplate)
         || ContainsStackFramesToken(options.ConsoleOutputTemplate)
         || ContainsStackFramesToken(options.EventOutputTemplate)
+        || ContainsStackFramesToken(options.CallbackOutputTemplate)
         || ContainsStackFramesToken(options.OutputTemplate);
 
     /// <summary>
@@ -42,6 +44,14 @@ internal sealed class ObservableLogFormatter(ObservableLoggerOptions options)
     public string FormatEvent(LogEntry entry, LogStringBuilder? sharedBuilder = null)
     {
         return FormatWithTemplateOrFallback(entry, _options.EventOutputTemplate, _options.OutputTemplate, sharedBuilder);
+    }
+
+    /// <summary>
+    /// Formats callback observer text using the configured callback template when present.
+    /// </summary>
+    public string FormatCallback(LogEntry entry, LogStringBuilder? sharedBuilder = null)
+    {
+        return FormatWithTemplateOrFallback(entry, _options.CallbackOutputTemplate, _options.OutputTemplate, sharedBuilder);
     }
 
     /// <summary>

@@ -8,7 +8,9 @@ namespace LiteObservableLogs.Internal;
 /// </summary>
 internal sealed class NoneLogger : ILogger
 {
-    /// <summary>Shared instance for no-op logging.</summary>
+    /// <summary>
+    /// Shared instance for no-op logging.
+    /// </summary>
     public static NoneLogger Instance { get; } = new();
 
     private NoneLogger()

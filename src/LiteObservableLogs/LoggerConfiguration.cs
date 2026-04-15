@@ -275,7 +275,7 @@ public sealed class LoggerConfiguration
     /// <summary>
     /// Registers callback publishing using <see cref="ObservableLogEvent"/> payloads.
     /// </summary>
-    internal LoggerConfiguration EnableCallbackCompatibility(Action<ObservableLogEvent> callback)
+    internal LoggerConfiguration EnableCallbackCompatibility(Action<ObservableLogEvent> callback, string? outputTemplate)
     {
         if (callback == null)
         {
@@ -283,6 +283,7 @@ public sealed class LoggerConfiguration
         }
 
         _options.PublishToEvent = true;
+        _options.CallbackOutputTemplate = outputTemplate;
         _options.ObserveCallbacks.Add(callback);
         return this;
     }
@@ -377,9 +378,9 @@ public sealed class LoggerConfiguration
         /// <summary>
         /// Publishes to a callback for every emitted <see cref="ObservableLogEvent"/>.
         /// </summary>
-        public LoggerConfiguration Callback(Action<ObservableLogEvent> callback)
+        public LoggerConfiguration Callback(Action<ObservableLogEvent> callback, string? outputTemplate = null)
         {
-            return _owner.EnableCallbackCompatibility(callback);
+            return _owner.EnableCallbackCompatibility(callback, outputTemplate);
         }
     }
 
