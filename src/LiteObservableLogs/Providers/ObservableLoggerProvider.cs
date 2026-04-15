@@ -62,6 +62,14 @@ public sealed class ObservableLoggerProvider : ILoggerProvider, ISupportExternal
     }
 
     /// <summary>
+    /// Removes a callback registered via <c>ObserveTo.Callback(...)</c>.
+    /// </summary>
+    public bool RemoveCallback(Action<ObservableLogEvent> callback)
+    {
+        return _sink.RemoveCallback(callback);
+    }
+
+    /// <summary>
     /// Disposes sink resources and clears cached logger instances.
     /// </summary>
     public void Dispose()

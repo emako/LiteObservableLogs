@@ -13,6 +13,8 @@ internal sealed class ObservableLogSink : IDisposable
     private readonly ObservableLoggerOptions _options;
     private readonly ObservableLogFormatter _formatter;
     private readonly IObservableLogDispatcher _dispatcher;
+    private readonly List<Action<ObservableLogEvent>> _callbacks;
+    private readonly object _callbacksGate = new();
     private bool _disposed;
 
     public ObservableLogSink(ObservableLoggerOptions options)
@@ -20,6 +22,7 @@ internal sealed class ObservableLogSink : IDisposable
         _options = options.Clone();
         _formatter = new ObservableLogFormatter(_options);
         _dispatcher = CreateDispatcher();
+        _callbacks = [.. _options.ObserveCallbacks];
     }
 
     /// <summary>Gets the configured log folder.</summary>
@@ -101,6 +104,20 @@ internal sealed class ObservableLogSink : IDisposable
         _dispatcher.Flush();
     }
 
+    /// <summary>Removes a previously registered callback handler.</summary>
+    public bool RemoveCallback(Action<ObservableLogEvent> callback)
+    {
+        if (callback == null)
+        {
+            throw new ArgumentNullException(nameof(callback));
+        }
+
+        lock (_callbacksGate)
+        {
+            return _callbacks.Remove(callback);
+        }
+    }
+
     /// <summary>
     /// Disposes dispatcher resources and prevents further writes.
     /// </summary>
@@ -178,12 +195,43 @@ internal sealed class ObservableLogSink : IDisposable
 
         rendered ??= _formatter.FormatEvent(entry);
 
-        Log.Publish(new ObservableLogEvent(
+        ObservableLogEvent observableEvent = new(
             entry.Timestamp,
             entry.Level,
             entry.Category,
             entry.Message,
             entry.Exception,
-            rendered));
+            rendered);
+        Log.Publish(observableEvent);
+        DispatchCallbacks(observableEvent);
+    }
+
+    /// <summary>Invokes registered callback observers while isolating subscriber failures.</summary>
+    private void DispatchCallbacks(ObservableLogEvent entry)
+    {
+        Action<ObservableLogEvent>[] callbacks;
+        lock (_callbacksGate)
+        {
+            if (_callbacks.Count == 0)
+            {
+                return;
+            }
+
+            callbacks = [.. _callbacks];
+        }
+
+        for (int i = 0; i < callbacks.Length; i++)
+        {
+            try
+            {
+                callbacks[i](entry);
+            }
+            catch (Exception ex)
+            {
+#if DEBUG
+                Debug.WriteLine($"[LiteObservableLogs] ObserveTo.Callback subscriber threw: {ex}");
+#endif
+            }
+        }
     }
 }

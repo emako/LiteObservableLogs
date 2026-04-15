@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Microsoft.Extensions.Logging;
 
@@ -102,6 +103,11 @@ public sealed class ObservableLoggerOptions
     public string? EventOutputTemplate { get; set; }
 
     /// <summary>
+    /// Gets callbacks invoked for each published <see cref="ObservableLogEvent"/>.
+    /// </summary>
+    public List<Action<ObservableLogEvent>> ObserveCallbacks { get; set; } = [];
+
+    /// <summary>
     /// Gets or sets the global template used when a sink-specific template is not provided.
     /// </summary>
     public string? OutputTemplate { get; set; }
@@ -146,6 +152,7 @@ public sealed class ObservableLoggerOptions
             ConsoleOutputTemplate = ConsoleOutputTemplate,
             PublishToEvent = PublishToEvent,
             EventOutputTemplate = EventOutputTemplate,
+            ObserveCallbacks = [.. ObserveCallbacks],
             OutputTemplate = OutputTemplate,
             RetainedFileCountLimit = RetainedFileCountLimit,
             RetainedFileTimeLimit = RetainedFileTimeLimit,

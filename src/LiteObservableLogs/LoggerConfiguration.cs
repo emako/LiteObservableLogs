@@ -251,7 +251,9 @@ public sealed class LoggerConfiguration
         return this;
     }
 
-    /// <summary>Turns on mirrored console output with an optional template and target stream.</summary>
+    /// <summary>
+    /// Turns on mirrored console output with an optional template and target stream.
+    /// </summary>
     internal LoggerConfiguration EnableConsoleCompatibility(string? outputTemplate, ConsoleTarget target = ConsoleTarget.Console)
     {
         _options.WriteToConsole = true;
@@ -260,7 +262,9 @@ public sealed class LoggerConfiguration
         return this;
     }
 
-    /// <summary>Enables <see cref="Log.Received"/> publishing with an optional per-event template.</summary>
+    /// <summary>
+    /// Enables <see cref="Log.Received"/> publishing with an optional per-event template.
+    /// </summary>
     internal LoggerConfiguration EnableEventCompatibility(string? outputTemplate)
     {
         _options.PublishToEvent = true;
@@ -268,14 +272,33 @@ public sealed class LoggerConfiguration
         return this;
     }
 
-    /// <summary>Sets the fallback output template used when a sink-specific template is omitted.</summary>
+    /// <summary>
+    /// Registers callback publishing using <see cref="ObservableLogEvent"/> payloads.
+    /// </summary>
+    internal LoggerConfiguration EnableCallbackCompatibility(Action<ObservableLogEvent> callback)
+    {
+        if (callback == null)
+        {
+            throw new ArgumentNullException(nameof(callback));
+        }
+
+        _options.PublishToEvent = true;
+        _options.ObserveCallbacks.Add(callback);
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the fallback output template used when a sink-specific template is omitted.
+    /// </summary>
     internal LoggerConfiguration SetGlobalOutputTemplateCompatibility(string? outputTemplate)
     {
         _options.OutputTemplate = outputTemplate;
         return this;
     }
 
-    /// <summary>Appends a <c>{Timestamp:...}</c> segment when rolling is enabled but the template lacks it.</summary>
+    /// <summary>
+    /// Appends a <c>{Timestamp:...}</c> segment when rolling is enabled but the template lacks it.
+    /// </summary>
     private static string AppendRollingSuffix(string fileName, RollingInterval rollingInterval)
     {
         string extension = System.IO.Path.GetExtension(fileName);
@@ -322,7 +345,9 @@ public sealed class LoggerConfiguration
             return _owner.SetWriteToFileCompatibility(path, outputTemplate, rollingInterval, retainedFileCountLimit, retainedFileTimeLimit, rollingSize);
         }
 
-        /// <summary>Mirrors formatted lines to console or debug output.</summary>
+        /// <summary>
+        /// Mirrors formatted lines to console or debug output.
+        /// </summary>
         public LoggerConfiguration Console(string? outputTemplate = null, ConsoleTarget target = ConsoleTarget.Console)
         {
             return _owner.EnableConsoleCompatibility(outputTemplate, target);
@@ -341,10 +366,20 @@ public sealed class LoggerConfiguration
             _owner = owner;
         }
 
-        /// <summary>Publishes formatted lines to <see cref="Log.Received"/>.</summary>
+        /// <summary>
+        /// Publishes formatted lines to <see cref="Log.Received"/>.
+        /// </summary>
         public LoggerConfiguration Event(string? outputTemplate = null)
         {
             return _owner.EnableEventCompatibility(outputTemplate);
+        }
+
+        /// <summary>
+        /// Publishes to a callback for every emitted <see cref="ObservableLogEvent"/>.
+        /// </summary>
+        public LoggerConfiguration Callback(Action<ObservableLogEvent> callback)
+        {
+            return _owner.EnableCallbackCompatibility(callback);
         }
     }
 
@@ -360,7 +395,9 @@ public sealed class LoggerConfiguration
             _owner = owner;
         }
 
-        /// <summary>Sets the shared default output template for sinks that do not specify their own.</summary>
+        /// <summary>
+        /// Sets the shared default output template for sinks that do not specify their own.
+        /// </summary>
         public LoggerConfiguration OutputTemplate(string? outputTemplate = null)
         {
             return _owner.SetGlobalOutputTemplateCompatibility(outputTemplate);
@@ -379,43 +416,57 @@ public sealed class LoggerConfiguration
             _owner = owner;
         }
 
-        /// <summary>Alias for <see cref="Trace"/> (Serilog naming).</summary>
+        /// <summary>
+        /// Alias for <see cref="Trace"/> (Serilog naming).
+        /// </summary>
         public LoggerConfiguration Verbose()
         {
             return _owner.UseLevel(LogLevel.Trace);
         }
 
-        /// <summary>Minimum level: <see cref="LogLevel.Trace"/>.</summary>
+        /// <summary>
+        /// Minimum level: <see cref="LogLevel.Trace"/>.
+        /// </summary>
         public LoggerConfiguration Trace()
         {
             return _owner.UseLevel(LogLevel.Trace);
         }
 
-        /// <summary>Minimum level: <see cref="LogLevel.Debug"/>.</summary>
+        /// <summary>
+        /// Minimum level: <see cref="LogLevel.Debug"/>.
+        /// </summary>
         public LoggerConfiguration Debug()
         {
             return _owner.UseLevel(LogLevel.Debug);
         }
 
-        /// <summary>Minimum level: <see cref="LogLevel.Information"/>.</summary>
+        /// <summary>
+        /// Minimum level: <see cref="LogLevel.Information"/>.
+        /// </summary>
         public LoggerConfiguration Information()
         {
             return _owner.UseLevel(LogLevel.Information);
         }
 
-        /// <summary>Minimum level: <see cref="LogLevel.Warning"/>.</summary>
+        /// <summary>
+        /// Minimum level: <see cref="LogLevel.Warning"/>.
+        /// </summary>
         public LoggerConfiguration Warning()
         {
             return _owner.UseLevel(LogLevel.Warning);
         }
 
-        /// <summary>Minimum level: <see cref="LogLevel.Error"/>.</summary>
+        /// <summary>
+        /// Minimum level: <see cref="LogLevel.Error"/>.
+        /// </summary>
         public LoggerConfiguration Error()
         {
             return _owner.UseLevel(LogLevel.Error);
         }
 
-        /// <summary>Minimum level: <see cref="LogLevel.Critical"/> (Serilog: Fatal).</summary>
+        /// <summary>
+        /// Minimum level: <see cref="LogLevel.Critical"/> (Serilog: Fatal).
+        /// </summary>
         public LoggerConfiguration Fatal()
         {
             return _owner.UseLevel(LogLevel.Critical);
@@ -434,19 +485,25 @@ public sealed class LoggerConfiguration
             _owner = owner;
         }
 
-        /// <summary>Write log lines on the caller thread.</summary>
+        /// <summary>
+        /// Write log lines on the caller thread.
+        /// </summary>
         public LoggerConfiguration Sync()
         {
             return _owner.UseDispatcher(LogDispatcher.Sync);
         }
 
-        /// <summary>Write log lines on a background worker (default).</summary>
+        /// <summary>
+        /// Write log lines on a background worker (default).
+        /// </summary>
         public LoggerConfiguration Async()
         {
             return _owner.UseDispatcher(LogDispatcher.Async);
         }
 
-        /// <summary>Disable all log output while keeping the API usable.</summary>
+        /// <summary>
+        /// Disable all log output while keeping the API usable.
+        /// </summary>
         public LoggerConfiguration Silent()
         {
             return _owner.UseDispatcher(LogDispatcher.Silent);

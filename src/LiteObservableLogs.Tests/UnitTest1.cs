@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using LiteObservableLogs.Providers;
@@ -212,7 +212,7 @@ public sealed class LiteObservableLogsTests
     /// Verifies Global.OutputTemplate supplies a global template for sinks that omit outputTemplate.
     /// </summary>
     [Fact]
-    public void WriteToOptionTemplateIsUsedAsGlobalFallback()
+    public void GlobalOutputTemplateIsUsedAsGlobalFallback()
     {
         using TempDirectory temp = new();
         TextWriter originalOut = Console.Out;
@@ -248,6 +248,48 @@ public sealed class LiteObservableLogsTests
         Assert.Contains("GLOBAL|INF|hello-global", console.ToString());
         Assert.NotNull(received);
         Assert.Equal("GLOBAL|INF|hello-global", received!.RenderedText);
+    }
+
+    /// <summary>
+    /// Verifies ObserveTo.Callback receives events and can be removed via Log.Logger.
+    /// </summary>
+    [Fact]
+    public void CallbackCanBeRemovedFromLogLogger()
+    {
+        int callbackCount = 0;
+        ObservableLogEvent? callbackEvent = null;
+        Action<ObservableLogEvent> callback = entry =>
+        {
+            callbackCount++;
+            callbackEvent = entry;
+        };
+
+        Log.Logger = new LoggerConfiguration()
+            .ObserveTo.Callback(callback)
+            .UseDispatcher(LogDispatcher.Sync)
+            .MinimumLevel.Information()
+            .CreateLogger();
+
+        try
+        {
+            Log.Information("before-remove");
+            Log.Logger.Flush();
+
+            Assert.Equal(1, callbackCount);
+            Assert.NotNull(callbackEvent);
+            Assert.Contains("before-remove", callbackEvent!.RenderedText);
+
+            bool removed = Log.Logger.RemoveCallback(callback);
+            Assert.True(removed);
+
+            Log.Information("after-remove");
+            Log.Logger.Flush();
+            Assert.Equal(1, callbackCount);
+        }
+        finally
+        {
+            Log.CloseAndFlush();
+        }
     }
 
     /// <summary>

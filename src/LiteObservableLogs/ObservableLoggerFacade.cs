@@ -152,6 +152,20 @@ public sealed class ObservableLoggerFacade : IDisposable
     }
 
     /// <summary>
+    /// Removes a callback previously added via <c>ObserveTo.Callback(...)</c>.
+    /// </summary>
+    public bool RemoveCallback(Action<ObservableLogEvent> callback)
+    {
+        ThrowIfDisposed();
+        if (callback == null)
+        {
+            throw new ArgumentNullException(nameof(callback));
+        }
+
+        return _provider?.RemoveCallback(callback) ?? false;
+    }
+
+    /// <summary>
     /// Disposes the facade and optionally its owned provider.
     /// </summary>
     public void Dispose()
