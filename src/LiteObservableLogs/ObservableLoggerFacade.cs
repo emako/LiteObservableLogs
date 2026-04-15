@@ -14,7 +14,8 @@ public sealed class ObservableLoggerFacade : IDisposable
     private readonly ILogger _logger;
     private readonly ObservableLoggerProvider? _provider;
     private readonly bool _ownsProvider;
-    private readonly ObservableLoggerOptions? _optionsSnapshot;
+    private ObservableLoggerOptions? _optionsSnapshot;
+    private readonly object _optionsRootSync = new();
     private bool _disposed;
 
     /// <summary>
@@ -45,7 +46,16 @@ public sealed class ObservableLoggerFacade : IDisposable
     /// <summary>
     /// Cloned options used when bridging to host logging (for example Serilog-style compatibility).
     /// </summary>
-    internal ObservableLoggerOptions? OptionsSnapshot => _optionsSnapshot?.Clone();
+    internal ObservableLoggerOptions? OptionsSnapshot
+    {
+        get
+        {
+            lock (_optionsRootSync)
+            {
+                return _optionsSnapshot?.Clone();
+            }
+        }
+    }
 
     /// <summary>
     /// Gets the configured log folder for this logger instance.
@@ -163,6 +173,56 @@ public sealed class ObservableLoggerFacade : IDisposable
         }
 
         return _provider?.RemoveCallback(callback) ?? false;
+    }
+
+    /// <summary>
+    /// Gets or sets the minimum accepted log level dynamically.
+    /// </summary>
+    public LogLevel MinimumLevel
+    {
+        get
+        {
+            ThrowIfDisposed();
+            lock (_optionsRootSync)
+            {
+                return _optionsSnapshot?.MinLevel ?? LogLevel.Trace;
+            }
+        }
+        set
+        {
+            ThrowIfDisposed();
+            _provider?.UpdateMinimumLevel(value);
+            lock (_optionsRootSync)
+            {
+                _optionsSnapshot ??= new ObservableLoggerOptions();
+                _optionsSnapshot.MinLevel = value;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the global output template dynamically.
+    /// </summary>
+    public string? OutputTemplate
+    {
+        get
+        {
+            ThrowIfDisposed();
+            lock (_optionsRootSync)
+            {
+                return _optionsSnapshot?.OutputTemplate;
+            }
+        }
+        set
+        {
+            ThrowIfDisposed();
+            _provider?.UpdateGlobalOutputTemplate(value);
+            lock (_optionsRootSync)
+            {
+                _optionsSnapshot ??= new ObservableLoggerOptions();
+                _optionsSnapshot.OutputTemplate = value;
+            }
+        }
     }
 
     /// <summary>

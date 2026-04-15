@@ -294,6 +294,71 @@ public sealed class LiteObservableLogsTests
     }
 
     /// <summary>
+    /// Verifies Log.Logger minimum level can be changed dynamically at runtime.
+    /// </summary>
+    [Fact]
+    public void LogLoggerMinimumLevelCanBeUpdatedDynamically()
+    {
+        using TempDirectory temp = new();
+        string filePath = Path.Combine(temp.Path, "dynamic-level.log");
+
+        Log.Logger = new LoggerConfiguration()
+            .WriteTo.File(filePath, outputTemplate: "{Level:u3}|{Message}")
+            .UseDispatcher(LogDispatcher.Sync)
+            .MinimumLevel.Information()
+            .CreateLogger();
+
+        try
+        {
+            Log.Debug("before-update");
+            Log.Logger.MinimumLevel = LogLevel.Debug;
+            Log.Debug("after-update");
+            Log.Logger.Flush();
+        }
+        finally
+        {
+            Log.CloseAndFlush();
+        }
+
+        string content = ReadAllTextShared(filePath);
+        Assert.DoesNotContain("before-update", content);
+        Assert.Contains("DBG|after-update", content);
+    }
+
+    /// <summary>
+    /// Verifies Log.Logger global output template can be changed dynamically at runtime.
+    /// </summary>
+    [Fact]
+    public void LogLoggerOutputTemplateCanBeUpdatedDynamically()
+    {
+        using TempDirectory temp = new();
+        string filePath = Path.Combine(temp.Path, "dynamic-template.log");
+
+        Log.Logger = new LoggerConfiguration()
+            .Global.OutputTemplate("OLD|{Message}")
+            .WriteTo.File(filePath)
+            .UseDispatcher(LogDispatcher.Sync)
+            .MinimumLevel.Information()
+            .CreateLogger();
+
+        try
+        {
+            Log.Information("first");
+            Log.Logger.OutputTemplate = "NEW|{Message}";
+            Log.Information("second");
+            Log.Logger.Flush();
+        }
+        finally
+        {
+            Log.CloseAndFlush();
+        }
+
+        string content = ReadAllTextShared(filePath);
+        Assert.Contains("OLD|first", content);
+        Assert.Contains("NEW|second", content);
+    }
+
+    /// <summary>
     /// Verifies ConsoleTarget.Debug routes output to <see cref="Debug.WriteLine(string?)"/>.
     /// </summary>
     [Fact]

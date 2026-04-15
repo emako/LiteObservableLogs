@@ -41,7 +41,7 @@ public static class Log
     /// <summary>
     /// Gets the latest known options from the current global logger.
     /// </summary>
-    internal static ObservableLoggerOptions CurrentOptions => _currentOptions.Clone();
+    internal static ObservableLoggerOptions CurrentOptions => _logger.OptionsSnapshot ?? _currentOptions.Clone();
 
     /// <summary>
     /// Flushes and disposes the current global logger, then resets it to <see cref="Empty"/>.

@@ -126,6 +126,22 @@ internal sealed class ObservableLogSink : IDisposable
     }
 
     /// <summary>
+    /// Updates minimum accepted level for subsequent log writes.
+    /// </summary>
+    public void UpdateMinimumLevel(LogLevel level)
+    {
+        _options.MinLevel = level;
+    }
+
+    /// <summary>
+    /// Updates global output template used by sinks/callbacks when per-sink template is missing.
+    /// </summary>
+    public void UpdateGlobalOutputTemplate(string? outputTemplate)
+    {
+        _options.OutputTemplate = outputTemplate;
+    }
+
+    /// <summary>
     /// Disposes dispatcher resources and prevents further writes.
     /// </summary>
     public void Dispose()

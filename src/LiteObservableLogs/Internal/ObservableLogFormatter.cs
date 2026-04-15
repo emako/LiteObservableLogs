@@ -6,21 +6,15 @@ namespace LiteObservableLogs.Internal;
 internal sealed class ObservableLogFormatter(ObservableLoggerOptions options)
 {
     private readonly ObservableLoggerOptions _options = options;
-    private readonly bool _usesAnyTemplate = HasTemplate(options.FileOutputTemplate)
-        || HasTemplate(options.ConsoleOutputTemplate)
-        || HasTemplate(options.EventOutputTemplate)
-        || HasTemplate(options.CallbackOutputTemplate)
-        || HasTemplate(options.OutputTemplate);
-    private readonly bool _requiresStackFrames = ContainsStackFramesToken(options.FileOutputTemplate)
-        || ContainsStackFramesToken(options.ConsoleOutputTemplate)
-        || ContainsStackFramesToken(options.EventOutputTemplate)
-        || ContainsStackFramesToken(options.CallbackOutputTemplate)
-        || ContainsStackFramesToken(options.OutputTemplate);
 
     /// <summary>
     /// Indicates whether any configured template references <c>{StackFrames}</c>.
     /// </summary>
-    public bool RequiresStackFrames => _requiresStackFrames;
+    public bool RequiresStackFrames => ContainsStackFramesToken(_options.FileOutputTemplate)
+        || ContainsStackFramesToken(_options.ConsoleOutputTemplate)
+        || ContainsStackFramesToken(_options.EventOutputTemplate)
+        || ContainsStackFramesToken(_options.CallbackOutputTemplate)
+        || ContainsStackFramesToken(_options.OutputTemplate);
 
     /// <summary>
     /// Formats file output using the configured file template when present.
@@ -59,7 +53,12 @@ internal sealed class ObservableLogFormatter(ObservableLoggerOptions options)
     /// </summary>
     public LogStringBuilder? CreateSharedBuilder(LogEntry entry)
     {
-        return _usesAnyTemplate ? new LogStringBuilder(entry) : null;
+        bool usesAnyTemplate = HasTemplate(_options.FileOutputTemplate)
+            || HasTemplate(_options.ConsoleOutputTemplate)
+            || HasTemplate(_options.EventOutputTemplate)
+            || HasTemplate(_options.CallbackOutputTemplate)
+            || HasTemplate(_options.OutputTemplate);
+        return usesAnyTemplate ? new LogStringBuilder(entry) : null;
     }
 
     /// <summary>

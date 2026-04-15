@@ -74,6 +74,22 @@ public sealed class ObservableLoggerProvider : ILoggerProvider, ISupportExternal
     }
 
     /// <summary>
+    /// Updates minimum accepted log level for this provider's shared sink.
+    /// </summary>
+    public void UpdateMinimumLevel(LogLevel level)
+    {
+        _sink.UpdateMinimumLevel(level);
+    }
+
+    /// <summary>
+    /// Updates global output template for this provider's shared sink.
+    /// </summary>
+    public void UpdateGlobalOutputTemplate(string? outputTemplate)
+    {
+        _sink.UpdateGlobalOutputTemplate(outputTemplate);
+    }
+
+    /// <summary>
     /// Disposes sink resources and clears cached logger instances.
     /// </summary>
     public void Dispose()
