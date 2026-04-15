@@ -98,14 +98,20 @@ internal sealed class ObservableFileWriter : IDisposable
         Directory.CreateDirectory(_options.LogFolder);
         InitializeRollingCountFromExistingFiles();
         UpdateRollingStateByInterval(timestamp);
-        if (ShouldRollBySize(pendingMessage))
+        bool rolledBySize = ShouldRollBySize(pendingMessage);
+        if (rolledBySize)
         {
             _currentRollingCount++;
         }
 
         string filePath = Path.Combine(_options.LogFolder, ResolveFileName(timestamp, _currentRollingCount));
 
-        if (string.Equals(filePath, _currentFilePath, StringComparison.OrdinalIgnoreCase) && _writer != null)
+        if (rolledBySize)
+        {
+            BackupConflictingFile(filePath);
+        }
+
+        if (!rolledBySize && string.Equals(filePath, _currentFilePath, StringComparison.OrdinalIgnoreCase) && _writer != null)
         {
             return;
         }
@@ -123,6 +129,34 @@ internal sealed class ObservableFileWriter : IDisposable
         _currentFilePath = filePath;
         _currentFileLengthBytes = stream.Length;
         CleanupOldFiles();
+    }
+
+    /// <summary>
+    /// Moves conflicting target file to a <c>.bak</c> file before opening a new writer.
+    /// </summary>
+    private void BackupConflictingFile(string filePath)
+    {
+        if (!File.Exists(filePath))
+        {
+            return;
+        }
+
+        string backupPath = filePath + ".bak";
+        _writer?.Flush();
+        _writer?.Dispose();
+        _writer = null;
+
+        if (File.Exists(backupPath))
+        {
+            File.Delete(backupPath);
+        }
+
+        File.Move(filePath, backupPath);
+        if (string.Equals(_currentFilePath, filePath, StringComparison.OrdinalIgnoreCase))
+        {
+            _currentFilePath = null;
+            _currentFileLengthBytes = 0;
+        }
     }
 
     /// <summary>

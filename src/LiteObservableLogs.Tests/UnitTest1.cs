@@ -493,6 +493,45 @@ public sealed class LiteObservableLogsTests
     }
 
     /// <summary>
+    /// Verifies size rolling backs up conflicting file names to <c>.bak</c> when template has no <c>{Count}</c>.
+    /// </summary>
+    [Fact]
+    public void RollingSizeBacksUpConflictingFileNameWhenTemplateHasNoCount()
+    {
+        using TempDirectory temp = new();
+        string payloadA = new('A', 700);
+        string payloadB = new('B', 700);
+        DateTimeOffset fixedTime = new(2026, 4, 10, 9, 0, 0, TimeSpan.Zero);
+        string filePath = Path.Combine(temp.Path, "nocount_202604100900.log");
+        string backupPath = filePath + ".bak";
+        File.WriteAllText(backupPath, "old-backup");
+
+        using (ObservableLoggerFacade logger = new LoggerConfiguration()
+            .WriteTo.File(
+                Path.Combine(temp.Path, "nocount_{Timestamp:yyyyMMddHHmm}.log"),
+                outputTemplate: "{Message}",
+                rollingInterval: RollingInterval.Infinite,
+                rollingSize: 1)
+            .UseDispatcher(LogDispatcher.Sync)
+            .UseOptions(options => options.TimestampProvider = () => fixedTime)
+            .CreateLogger())
+        {
+            logger.Information(payloadA);
+            logger.Information(payloadB);
+            logger.Flush();
+        }
+
+        Assert.True(File.Exists(filePath));
+        Assert.True(File.Exists(backupPath));
+        string activeContent = ReadAllTextShared(filePath);
+        string backupContent = ReadAllTextShared(backupPath);
+        Assert.Contains(payloadB, activeContent);
+        Assert.DoesNotContain(payloadA, activeContent);
+        Assert.Contains(payloadA, backupContent);
+        Assert.DoesNotContain("old-backup", backupContent);
+    }
+
+    /// <summary>
     /// Verifies restart continues writing to highest existing {Count} file instead of resetting to 1.
     /// </summary>
     [Fact]
