@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using LiteObservableLogs.Providers;
@@ -209,7 +209,7 @@ public sealed class LiteObservableLogsTests
     }
 
     /// <summary>
-    /// Verifies WriteTo.Option supplies a global template for sinks that omit outputTemplate.
+    /// Verifies Global.OutputTemplate supplies a global template for sinks that omit outputTemplate.
     /// </summary>
     [Fact]
     public void WriteToOptionTemplateIsUsedAsGlobalFallback()
@@ -226,7 +226,7 @@ public sealed class LiteObservableLogsTests
         try
         {
             using ObservableLoggerFacade logger = new LoggerConfiguration()
-                .WriteTo.Option("GLOBAL|{Level:u3}|{Message}")
+                .Global.OutputTemplate("GLOBAL|{Level:u3}|{Message}")
                 .WriteTo.File(Path.Combine(temp.Path, "global.log"))
                 .WriteTo.Console()
                 .ObserveTo.Event()

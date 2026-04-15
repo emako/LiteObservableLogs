@@ -29,7 +29,7 @@ public partial class App : Application
                     rollingSize: 10240L) // 1024 KB = 1 MB
                 .WriteTo.Console(target: ConsoleTarget.Debug)
                 .ObserveTo.Event()
-                .WriteTo.Option(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff}|{UserName}|{Level:u5}|{ThreadId:d3}|{CallerFileName}:{CallerLineNumber}|{CallerMemberName}|{Message}{NewLine}{StackFrames}")
+                .Global.OutputTemplate("{Timestamp:yyyy-MM-dd HH:mm:ss.fff}|{UserName}|{Level:u5}|{ThreadId:d3}|{CallerFileName}:{CallerLineNumber}|{CallerMemberName}|{Message}{NewLine}{StackFrames}")
                 .Dispatcher.Async()
                 .MinimumLevel.Debug()
                 .CreateLogger();

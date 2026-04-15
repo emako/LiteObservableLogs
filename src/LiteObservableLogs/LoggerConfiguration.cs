@@ -12,6 +12,7 @@ public sealed class LoggerConfiguration
     private readonly ObservableLoggerOptions _options = new();
     private readonly WriteToConfiguration _writeTo;
     private readonly ObserveToConfiguration _observeTo;
+    private readonly GlobalConfiguration _global;
     private readonly MinimumLevelConfiguration _minimumLevel;
     private readonly DispatcherConfiguration _dispatcher;
     private bool _loggerCreated;
@@ -23,6 +24,7 @@ public sealed class LoggerConfiguration
     {
         _writeTo = new WriteToConfiguration(this);
         _observeTo = new ObserveToConfiguration(this);
+        _global = new GlobalConfiguration(this);
         _minimumLevel = new MinimumLevelConfiguration(this);
         _dispatcher = new DispatcherConfiguration(this);
     }
@@ -44,6 +46,11 @@ public sealed class LoggerConfiguration
     /// Provides event-observation output configuration entry.
     /// </summary>
     public ObserveToConfiguration ObserveTo => _observeTo;
+
+    /// <summary>
+    /// Provides global logger option configuration entry.
+    /// </summary>
+    public GlobalConfiguration Global => _global;
 
     /// <summary>
     /// Provides Serilog-style minimum level configuration entry.
@@ -262,7 +269,7 @@ public sealed class LoggerConfiguration
     }
 
     /// <summary>Sets the fallback output template used when a sink-specific template is omitted.</summary>
-    internal LoggerConfiguration SetWriteToOptionsCompatibility(string? outputTemplate)
+    internal LoggerConfiguration SetGlobalOutputTemplateCompatibility(string? outputTemplate)
     {
         _options.OutputTemplate = outputTemplate;
         return this;
@@ -320,12 +327,6 @@ public sealed class LoggerConfiguration
         {
             return _owner.EnableConsoleCompatibility(outputTemplate, target);
         }
-
-        /// <summary>Sets the shared default output template for sinks that do not specify their own.</summary>
-        public LoggerConfiguration Option(string? outputTemplate = null)
-        {
-            return _owner.SetWriteToOptionsCompatibility(outputTemplate);
-        }
     }
 
     /// <summary>
@@ -344,6 +345,25 @@ public sealed class LoggerConfiguration
         public LoggerConfiguration Event(string? outputTemplate = null)
         {
             return _owner.EnableEventCompatibility(outputTemplate);
+        }
+    }
+
+    /// <summary>
+    /// Global logger option configuration wrapper.
+    /// </summary>
+    public sealed class GlobalConfiguration
+    {
+        private readonly LoggerConfiguration _owner;
+
+        internal GlobalConfiguration(LoggerConfiguration owner)
+        {
+            _owner = owner;
+        }
+
+        /// <summary>Sets the shared default output template for sinks that do not specify their own.</summary>
+        public LoggerConfiguration OutputTemplate(string? outputTemplate = null)
+        {
+            return _owner.SetGlobalOutputTemplateCompatibility(outputTemplate);
         }
     }
 
