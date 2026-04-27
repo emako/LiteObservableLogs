@@ -7,10 +7,8 @@
         <Version>1.0.0</Version>
         <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
 		<NoWarn>CS0168;</NoWarn>
-        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <PackageId>$(AssemblyName)</PackageId>
         <Authors>ema</Authors>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <RepositoryUrl>https://github.com/emako/LiteObservableLogs</RepositoryUrl>
         <PackageProjectUrl>https://github.com/emako/LiteObservableLogs</PackageProjectUrl>
         <RepositoryType>git</RepositoryType>
