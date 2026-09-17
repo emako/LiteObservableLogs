@@ -12,6 +12,34 @@ namespace LiteObservableLogs.Tests;
 public sealed class LiteObservableLogsTests
 {
     /// <summary>
+    /// Verifies caller resolution reports the business type and method instead of library frames.
+    /// </summary>
+    [Fact]
+    public void CallerMemberNameUsesDeclaringTypeAndMethod()
+    {
+        using TempDirectory temp = new();
+        using (ObservableLoggerFacade logger = new LoggerConfiguration()
+            .WriteTo.File(
+                Path.Combine(temp.Path, "caller.log"),
+                outputTemplate: "{CallerMemberName}|{Message}")
+            .UseDispatcher(LogDispatcher.Sync)
+            .MinimumLevel.Information()
+            .CreateLogger())
+        {
+            WriteSampleLog(logger);
+            logger.Flush();
+        }
+
+        string content = ReadAllTextShared(Path.Combine(temp.Path, "caller.log"));
+        Assert.Contains("LiteObservableLogsTests.WriteSampleLog|sample-caller", content);
+    }
+
+    private static void WriteSampleLog(ObservableLoggerFacade logger)
+    {
+        logger.Information("sample-caller");
+    }
+
+    /// <summary>
     /// Verifies sync mode honors level filtering and writes expected payload.
     /// </summary>
     [Fact]

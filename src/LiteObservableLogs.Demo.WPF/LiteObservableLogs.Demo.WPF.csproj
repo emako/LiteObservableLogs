@@ -7,11 +7,11 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <UseWPF>true</UseWPF>
-        <ApplicationIcon>Logo.ico</ApplicationIcon>
+        <ApplicationIcon>..\..\Logo.ico</ApplicationIcon>
     </PropertyGroup>
 
     <ItemGroup>
-        <Content Include="..\..\Logo.ico" />
+        <Resource Include="..\..\Logo.ico" />
     </ItemGroup>
 
     <ItemGroup>

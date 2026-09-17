@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -12,6 +11,11 @@ namespace LiteObservableLogs.Internal;
 /// Walks the stack to find the first frame outside this library and Microsoft.Extensions.Logging,
 /// producing <see cref="CallerInfo"/> for optional inclusion in log output.
 /// </summary>
+/// <remarks>
+/// Does not use a fixed skip-frame count: packers (for example Virbox JIT) may insert empty frames
+/// between the logger and the business call site. When PDB line info is missing, the declaring
+/// type name is used in place of the file name.
+/// </remarks>
 internal static class CallerInfoResolver
 {
     /// <summary>
@@ -19,81 +23,70 @@ internal static class CallerInfoResolver
     /// </summary>
     public static CallerInfo Resolve()
     {
-        StackFrame? stackFrame = new StackTrace(true)
-            .GetFrames()
-            .FirstOrDefault(stackFrame =>
-            {
-                MethodBase? method = stackFrame.GetMethod();
-                Type? declaringType = method?.DeclaringType;
-                string? ns = declaringType?.Namespace;
-                string? asm = declaringType?.Assembly.GetName().Name;
-
-                if (asm != null && asm == nameof(LiteObservableLogs))
-                {
-                    return false;
-                }
-
-                if (asm != null && asm.StartsWith("Microsoft.Extensions.Logging", StringComparison.Ordinal))
-                {
-                    return false;
-                }
-
-                return true;
-            });
-
-        if (stackFrame == null)
+        StackFrame[]? frames = new StackTrace(1, true).GetFrames();
+        if (frames == null || frames.Length == 0)
         {
-            return new CallerInfo(null, null, -0, Thread.CurrentThread.ManagedThreadId);
+            return new CallerInfo("<unknown>", "<unknown>", 0, Thread.CurrentThread.ManagedThreadId);
         }
 
-        string? fileName = stackFrame.GetFileName();
-        int fileLineNumber = stackFrame.GetFileLineNumber();
-        MethodBase? method = stackFrame.GetMethod();
-        string? methodName = method is null ? null : RenderMethod(method);
-
-        return new CallerInfo(
-            fileName: fileName is null ? "<unknown>" : Path.GetFileName(fileName),
-            memberName: methodName,
-            lineNumber: fileLineNumber,
-            threadId: Thread.CurrentThread.ManagedThreadId);
-
-        static string RenderMethod(MethodBase method)
+        foreach (StackFrame frame in frames)
         {
-            if (method is MethodInfo info && info.IsGenericMethod)
+            MethodBase? method = frame.GetMethod();
+            if (LoggingStackFrameFilter.IsLoggingInfrastructure(method))
             {
-                // Append generic type argument names in the same style as stack traces.
-                StringBuilder result = new(method.Name);
-
-                Type[] genericArguments = info.GetGenericArguments();
-                int i = 0;
-                bool flag = true;
-
-                result.Append("<");
-
-                while (i < genericArguments.Length)
-                {
-                    if (!flag)
-                    {
-                        result.Append(",");
-                    }
-                    else
-                    {
-                        flag = false;
-                    }
-
-                    result.Append(genericArguments[i].Name);
-
-                    i++;
-                }
-
-                result.Append(">");
-
-                return result.ToString();
+                continue;
             }
-            else
+
+            Type declaringType = method!.DeclaringType!;
+            string fileName = Path.GetFileName(frame.GetFileName()) ?? string.Empty;
+            if (string.IsNullOrEmpty(fileName))
             {
-                return method.Name;
+                // Release builds without PDB: fall back to the declaring type name.
+                fileName = declaringType.Name;
             }
+
+            int lineNumber = frame.GetFileLineNumber();
+            string memberName = RenderMemberName(declaringType, method);
+
+            return new CallerInfo(
+                fileName: fileName,
+                memberName: memberName,
+                lineNumber: lineNumber,
+                threadId: Thread.CurrentThread.ManagedThreadId);
         }
+
+        return new CallerInfo("<unknown>", "<unknown>", 0, Thread.CurrentThread.ManagedThreadId);
+    }
+
+    private static string RenderMemberName(Type declaringType, MethodBase method)
+    {
+        StringBuilder result = new();
+        result.Append(declaringType.Name);
+        result.Append('.');
+        result.Append(method.Name);
+        AppendGenericArguments(result, method);
+        return result.ToString();
+    }
+
+    private static void AppendGenericArguments(StringBuilder result, MethodBase method)
+    {
+        if (method is not MethodInfo methodInfo || !methodInfo.IsGenericMethod)
+        {
+            return;
+        }
+
+        Type[] genericArguments = methodInfo.GetGenericArguments();
+        result.Append('<');
+        for (int i = 0; i < genericArguments.Length; i++)
+        {
+            if (i > 0)
+            {
+                result.Append(',');
+            }
+
+            result.Append(genericArguments[i].Name);
+        }
+
+        result.Append('>');
     }
 }

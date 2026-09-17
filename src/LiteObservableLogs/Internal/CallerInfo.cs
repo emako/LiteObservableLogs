@@ -6,12 +6,12 @@ namespace LiteObservableLogs.Internal;
 internal readonly struct CallerInfo(string? fileName, string? memberName, int lineNumber, int threadId)
 {
     /// <summary>
-    /// Source file name only (no directory), or a placeholder when PDB line info is unavailable.
+    /// Source file name only (no directory). When PDB info is unavailable, this is the declaring type name.
     /// </summary>
     public string? FileName { get; } = fileName;
 
     /// <summary>
-    /// Method name, including generic arity display when applicable.
+    /// Declaring type and method name (for example <c>MyClass.DoWork</c>), including generic arguments when applicable.
     /// </summary>
     public string? MemberName { get; } = memberName;
 

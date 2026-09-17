@@ -15,7 +15,7 @@ internal static class StackFramesResolver
     /// </summary>
     public static string Resolve()
     {
-        StackFrame[]? frames = new StackTrace(true).GetFrames();
+        StackFrame[]? frames = new StackTrace(1, true).GetFrames();
         if (frames == null || frames.Length == 0)
         {
             return string.Empty;
@@ -26,30 +26,15 @@ internal static class StackFramesResolver
         {
             StackFrame frame = frames[i];
             MethodBase? method = frame.GetMethod();
-            Type? declaringType = method?.DeclaringType;
-            string? asm = declaringType?.Assembly.GetName().Name;
-
-            if (asm != null && asm == nameof(LiteObservableLogs))
+            if (LoggingStackFrameFilter.IsLoggingInfrastructure(method))
             {
                 continue;
             }
 
-            if (asm != null && asm.StartsWith("Microsoft.Extensions.Logging", StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            if (method == null)
-            {
-                continue;
-            }
+            Type declaringType = method!.DeclaringType!;
 
             sb.Append("   at ");
-            if (declaringType != null)
-            {
-                sb.Append(declaringType.FullName).Append('.');
-            }
-
+            sb.Append(declaringType.FullName).Append('.');
             sb.Append(method.Name).Append("()");
 
             string? fileName = frame.GetFileName();

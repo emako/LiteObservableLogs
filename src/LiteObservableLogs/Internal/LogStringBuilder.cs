@@ -107,7 +107,9 @@ internal sealed class LogStringBuilder(LogEntry entry)
             "Scopes" => string.Join(" => ", Scopes),
             "Caller" => Caller is CallerInfo caller ? RenderCaller(caller) : string.Empty,
             "CallerFileName" => Caller?.FileName ?? string.Empty,
-            "CallerLineNumber" => Caller?.LineNumber.ToString(CultureInfo.InvariantCulture) ?? string.Empty,
+            "CallerLineNumber" => Caller is { LineNumber: > 0 } c
+                ? c.LineNumber.ToString(CultureInfo.InvariantCulture)
+                : string.Empty,
             "CallerMemberName" => Caller?.MemberName ?? string.Empty,
             "ThreadId" => ThreadId.HasValue
                 ? (string.IsNullOrWhiteSpace(format)
@@ -132,7 +134,13 @@ internal sealed class LogStringBuilder(LogEntry entry)
 
     private static string RenderCaller(CallerInfo caller)
     {
-        return $"{caller.FileName}:{caller.LineNumber},{caller.MemberName}";
+        // Match call-site formatting: omit ":line" when PDB info is unavailable.
+        if (caller.LineNumber > 0)
+        {
+            return $"{caller.FileName}:{caller.LineNumber},{caller.MemberName}";
+        }
+
+        return $"{caller.FileName},{caller.MemberName}";
     }
 
     /// <summary>
