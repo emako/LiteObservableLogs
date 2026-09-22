@@ -177,12 +177,12 @@ internal sealed class ObservableLogSink : IDisposable
     private (string FileRendered, string? ConsoleRendered, string? EventRendered) RenderOutputs(LogEntry entry)
     {
         LogStringBuilder? sharedBuilder = _formatter.CreateSharedBuilder(entry);
-        string fileRendered = _formatter.FormatFile(entry, sharedBuilder);
+        string fileRendered = Transform(_formatter.FormatFile(entry, sharedBuilder));
         string? consoleRendered = _options.WriteToConsole
-            ? _formatter.FormatConsole(entry, sharedBuilder)
+            ? Transform(_formatter.FormatConsole(entry, sharedBuilder))
             : null;
         string? eventRendered = _options.PublishToEvent
-            ? _formatter.FormatEvent(entry, sharedBuilder)
+            ? Transform(_formatter.FormatEvent(entry, sharedBuilder))
             : null;
         return (fileRendered, consoleRendered, eventRendered);
     }
@@ -207,7 +207,7 @@ internal sealed class ObservableLogSink : IDisposable
             return;
         }
 
-        rendered ??= _formatter.FormatConsole(entry);
+        rendered ??= Transform(_formatter.FormatConsole(entry));
         if (_options.ConsoleTarget == ConsoleTarget.Debug)
         {
             Debug.WriteLine(rendered);
@@ -227,7 +227,7 @@ internal sealed class ObservableLogSink : IDisposable
             return;
         }
 
-        rendered ??= _formatter.FormatEvent(entry);
+        rendered ??= Transform(_formatter.FormatEvent(entry));
 
         ObservableLogEvent observableEvent = new(
             entry.Timestamp,
@@ -260,7 +260,7 @@ internal sealed class ObservableLogSink : IDisposable
             return;
         }
 
-        rendered ??= _formatter.FormatCallback(entry);
+        rendered ??= Transform(_formatter.FormatCallback(entry));
         DispatchCallbacks(callbacks, new ObservableLogEvent(
             entry.Timestamp,
             entry.Level,
@@ -268,6 +268,20 @@ internal sealed class ObservableLogSink : IDisposable
             entry.Message,
             entry.Exception,
             rendered));
+    }
+
+    /// <summary>
+    /// Applies the optional output transform once per rendered sink line.
+    /// </summary>
+    private string Transform(string text)
+    {
+        Func<string, string>? transform = _options.OutputTransform;
+        if (transform == null)
+        {
+            return text;
+        }
+
+        return transform(text) ?? string.Empty;
     }
 
     /// <summary>

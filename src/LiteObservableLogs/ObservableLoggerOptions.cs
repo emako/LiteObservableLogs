@@ -133,6 +133,12 @@ public sealed class ObservableLoggerOptions
     public Func<DateTimeOffset> TimestampProvider { get; set; } = static () => DateTimeOffset.Now;
 
     /// <summary>
+    /// Gets or sets an optional transform applied to each rendered output line
+    /// (file, console, event, and callback text) before it is written or published.
+    /// </summary>
+    public Func<string, string>? OutputTransform { get; set; }
+
+    /// <summary>
     /// Creates a detached copy so runtime components cannot mutate caller-owned options.
     /// </summary>
     public ObservableLoggerOptions Clone()
@@ -163,6 +169,7 @@ public sealed class ObservableLoggerOptions
             RetainedFileCountLimit = RetainedFileCountLimit,
             RetainedFileTimeLimit = RetainedFileTimeLimit,
             TimestampProvider = TimestampProvider,
+            OutputTransform = OutputTransform,
         };
     }
 }

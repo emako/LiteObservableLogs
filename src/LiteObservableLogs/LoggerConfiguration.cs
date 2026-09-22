@@ -118,6 +118,16 @@ public sealed class LoggerConfiguration
     }
 
     /// <summary>
+    /// Transforms each rendered output line (file / console / event / callback) before it is written.
+    /// Pass <c>null</c> to clear a previously set transform.
+    /// </summary>
+    public LoggerConfiguration UseOutputTransform(Func<string, string>? transform)
+    {
+        _options.OutputTransform = transform;
+        return this;
+    }
+
+    /// <summary>
     /// Applies custom option mutations using a callback.
     /// </summary>
     public LoggerConfiguration UseOptions(Action<ObservableLoggerOptions> configure)
