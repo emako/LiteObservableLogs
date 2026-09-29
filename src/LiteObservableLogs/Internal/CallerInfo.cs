@@ -11,7 +11,7 @@ internal readonly struct CallerInfo(string? fileName, string? memberName, int li
     public string? FileName { get; } = fileName;
 
     /// <summary>
-    /// Declaring type and method name (for example <c>MyClass.DoWork</c>), including generic arguments when applicable.
+    /// Method name only (for example <c>DoWork</c>), including generic arguments when applicable.
     /// </summary>
     public string? MemberName { get; } = memberName;
 

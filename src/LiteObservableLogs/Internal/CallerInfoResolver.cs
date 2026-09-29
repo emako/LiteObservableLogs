@@ -46,7 +46,7 @@ internal static class CallerInfoResolver
             }
 
             int lineNumber = frame.GetFileLineNumber();
-            string memberName = RenderMemberName(declaringType, method);
+            string memberName = RenderMemberName(method);
 
             return new CallerInfo(
                 fileName: fileName,
@@ -58,11 +58,9 @@ internal static class CallerInfoResolver
         return new CallerInfo("<unknown>", "<unknown>", 0, Thread.CurrentThread.ManagedThreadId);
     }
 
-    private static string RenderMemberName(Type declaringType, MethodBase method)
+    private static string RenderMemberName(MethodBase method)
     {
         StringBuilder result = new();
-        result.Append(declaringType.Name);
-        result.Append('.');
         result.Append(method.Name);
         AppendGenericArguments(result, method);
         return result.ToString();

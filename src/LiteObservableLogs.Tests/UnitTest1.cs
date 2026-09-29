@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using LiteObservableLogs.Providers;
@@ -12,10 +12,10 @@ namespace LiteObservableLogs.Tests;
 public sealed class LiteObservableLogsTests
 {
     /// <summary>
-    /// Verifies caller resolution reports the business type and method instead of library frames.
+    /// Verifies caller resolution reports the business method instead of library frames.
     /// </summary>
     [Fact]
-    public void CallerMemberNameUsesDeclaringTypeAndMethod()
+    public void CallerMemberNameUsesMethodName()
     {
         using TempDirectory temp = new();
         using (ObservableLoggerFacade logger = new LoggerConfiguration()
@@ -31,7 +31,8 @@ public sealed class LiteObservableLogsTests
         }
 
         string content = ReadAllTextShared(Path.Combine(temp.Path, "caller.log"));
-        Assert.Contains("LiteObservableLogsTests.WriteSampleLog|sample-caller", content);
+        Assert.Contains("WriteSampleLog|sample-caller", content);
+        Assert.DoesNotContain("LiteObservableLogsTests.WriteSampleLog", content);
     }
 
     private static void WriteSampleLog(ObservableLoggerFacade logger)
