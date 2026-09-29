@@ -15,7 +15,7 @@ namespace LiteObservableLogs.Internal;
 /// <c>Timestamp</c>, <c>Level</c> (with optional Serilog-style width/format tokens),
 /// <c>Message</c>, <c>Exception</c>, <c>NewLine</c>, <c>SourceContext</c> (category),
 /// <c>EventId</c>, <c>Scopes</c>, <c>StackFrames</c>, <c>Caller</c> (compact file:line,member),
-/// <c>CallerFileName</c>, <c>CallerLineNumber</c>, <c>CallerMemberName</c>,
+/// <c>CallerFileName</c>, <c>CallerLineNumber</c>, <c>CallerMemberName</c>, <c>CallerMemberFullName</c>,
 /// <c>ThreadId</c>, and <c>UserName</c>.
 /// When the template omits <c>{Exception}</c>, exception text is appended to <c>Message</c> for backward compatibility.
 /// </remarks>
@@ -109,6 +109,7 @@ internal sealed class LogStringBuilder(LogEntry entry)
             "CallerFileName" => Caller?.FileName ?? string.Empty,
             "CallerLineNumber" => (Caller?.LineNumber ?? 0).ToString(CultureInfo.InvariantCulture),
             "CallerMemberName" => Caller?.MemberName ?? string.Empty,
+            "CallerMemberFullName" => Caller?.MemberFullName ?? string.Empty,
             "ThreadId" => ThreadId.HasValue
                 ? (string.IsNullOrWhiteSpace(format)
                     ? ThreadId.Value.ToString(CultureInfo.InvariantCulture)

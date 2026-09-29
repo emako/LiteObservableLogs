@@ -80,7 +80,7 @@ Optional compatibility helper (name only): `builder.AddSerilog()` maps to curren
 
 - **Per sink** — pass `outputTemplate` on `WriteTo.File`, `WriteTo.Console`, `ObserveTo.Event`, or `ObserveTo.Callback`.
 - **Global fallback** — `Global.OutputTemplate("...")` is used when a sink-specific template is omitted or null.
-- **Tokens** — supports placeholders such as `{Timestamp}`, `{Level}`, `{Message}`, `{Exception}`, `{SourceContext}`, `{NewLine}`, `{StackFrames}`, caller and thread tokens, etc.
+- **Tokens** — supports placeholders such as `{Timestamp}`, `{Level}`, `{Message}`, `{Exception}`, `{SourceContext}`, `{NewLine}`, `{StackFrames}`, caller and thread tokens (`{CallerMemberName}` is the method name, `{CallerMemberFullName}` is `ClassName.MethodName`), etc.
 
 ### `ObserveTo.Event` vs `ObserveTo.Callback`
 

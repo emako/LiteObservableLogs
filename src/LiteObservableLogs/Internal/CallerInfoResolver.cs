@@ -26,7 +26,7 @@ internal static class CallerInfoResolver
         StackFrame[]? frames = new StackTrace(1, true).GetFrames();
         if (frames == null || frames.Length == 0)
         {
-            return new CallerInfo("<unknown>", "<unknown>", 0, Thread.CurrentThread.ManagedThreadId);
+            return new CallerInfo("<unknown>", "<unknown>", "<unknown>", 0, Thread.CurrentThread.ManagedThreadId);
         }
 
         foreach (StackFrame frame in frames)
@@ -47,15 +47,17 @@ internal static class CallerInfoResolver
 
             int lineNumber = frame.GetFileLineNumber();
             string memberName = RenderMemberName(method);
+            string memberFullName = declaringType.Name + "." + memberName;
 
             return new CallerInfo(
                 fileName: fileName,
                 memberName: memberName,
+                memberFullName: memberFullName,
                 lineNumber: lineNumber,
                 threadId: Thread.CurrentThread.ManagedThreadId);
         }
 
-        return new CallerInfo("<unknown>", "<unknown>", 0, Thread.CurrentThread.ManagedThreadId);
+        return new CallerInfo("<unknown>", "<unknown>", "<unknown>", 0, Thread.CurrentThread.ManagedThreadId);
     }
 
     private static string RenderMemberName(MethodBase method)

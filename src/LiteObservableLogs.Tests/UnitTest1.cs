@@ -35,6 +35,29 @@ public sealed class LiteObservableLogsTests
         Assert.DoesNotContain("LiteObservableLogsTests.WriteSampleLog", content);
     }
 
+    /// <summary>
+    /// Verifies the full caller token includes declaring type and method name.
+    /// </summary>
+    [Fact]
+    public void CallerMemberFullNameUsesDeclaringTypeAndMethod()
+    {
+        using TempDirectory temp = new();
+        using (ObservableLoggerFacade logger = new LoggerConfiguration()
+            .WriteTo.File(
+                Path.Combine(temp.Path, "caller-full.log"),
+                outputTemplate: "{CallerMemberFullName}|{CallerMemberName}|{Message}")
+            .UseDispatcher(LogDispatcher.Sync)
+            .MinimumLevel.Information()
+            .CreateLogger())
+        {
+            WriteSampleLog(logger);
+            logger.Flush();
+        }
+
+        string content = ReadAllTextShared(Path.Combine(temp.Path, "caller-full.log"));
+        Assert.Contains("LiteObservableLogsTests.WriteSampleLog|WriteSampleLog|sample-caller", content);
+    }
+
     private static void WriteSampleLog(ObservableLoggerFacade logger)
     {
         logger.Information("sample-caller");
