@@ -11,7 +11,8 @@ public enum ConsoleTarget
     Console,
 
     /// <summary>
-    /// Writes to debug listeners via <see cref="System.Diagnostics.Debug.WriteLine(string?)"/>.
+    /// Writes to <see cref="System.Diagnostics.Trace"/> listeners.
+    /// The default listener forwards the line to the attached debugger, so it appears in the Debug output window.
     /// </summary>
     Debug,
 }

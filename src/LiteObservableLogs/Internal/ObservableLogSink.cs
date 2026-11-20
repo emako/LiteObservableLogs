@@ -198,7 +198,7 @@ internal sealed class ObservableLogSink : IDisposable
     }
 
     /// <summary>
-    /// Renders and writes to <see cref="Console"/> or <see cref="System.Diagnostics.Debug"/> when enabled.
+    /// Renders and writes to <see cref="Console"/> or the trace listeners when enabled.
     /// </summary>
     private void WriteConsole(LogEntry entry, string? rendered = null)
     {
@@ -210,7 +210,7 @@ internal sealed class ObservableLogSink : IDisposable
         rendered ??= Transform(_formatter.FormatConsole(entry));
         if (_options.ConsoleTarget == ConsoleTarget.Debug)
         {
-            Debug.WriteLine(rendered);
+            DiagnosticOutput.WriteLine(rendered);
             return;
         }
 

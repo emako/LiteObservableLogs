@@ -411,7 +411,8 @@ public sealed class LiteObservableLogsTests
     }
 
     /// <summary>
-    /// Verifies ConsoleTarget.Debug routes output to <see cref="Debug.WriteLine(string?)"/>.
+    /// Verifies ConsoleTarget.Debug routes output to the trace listeners.
+    /// This must pass in a Release build of the library: Debug.WriteLine is compiled out there.
     /// </summary>
     [Fact]
     public void ConsoleTargetDebugWritesToDebugListener()
