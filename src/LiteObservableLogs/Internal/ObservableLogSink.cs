@@ -210,7 +210,8 @@ internal sealed class ObservableLogSink : IDisposable
         rendered ??= Transform(_formatter.FormatConsole(entry));
         if (_options.ConsoleTarget == ConsoleTarget.Debug)
         {
-            DiagnosticOutput.WriteLine(rendered);
+            // Trace.WriteLine is guarded by TRACE (defined in Release too), unlike Debug.WriteLine (DEBUG only).
+            Trace.WriteLine(rendered);
             return;
         }
 

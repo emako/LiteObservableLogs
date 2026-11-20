@@ -412,7 +412,8 @@ public sealed class LiteObservableLogsTests
 
     /// <summary>
     /// Verifies ConsoleTarget.Debug routes output to the trace listeners.
-    /// This must pass in a Release build of the library: Debug.WriteLine is compiled out there.
+    /// This must pass in a Release build of the library: Debug.WriteLine is compiled out there (DEBUG undefined),
+    /// whereas Trace.WriteLine is kept as long as TRACE is defined (the SDK default for Release).
     /// </summary>
     [Fact]
     public void ConsoleTargetDebugWritesToDebugListener()
