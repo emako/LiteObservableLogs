@@ -103,7 +103,7 @@ Changes apply to subsequent log writes (including async formatting where applica
 
 ## Requirements
 
-- **Target frameworks** — `net48`, `netstandard2.0` (see `LiteObservableLogs.csproj`).
+- **Target frameworks** — `netstandard2.0`, `netstandard2.1`, `net462`, `net472`, `net48`, `net6.0`–`net11.0` (see `LiteObservableLogs.csproj`).
 - **Dependencies** — `Microsoft.Extensions.Logging` / `Abstractions` (versions as referenced by the project).
 
 ## License
